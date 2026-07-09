@@ -75,57 +75,37 @@ end)
 
 RegisterNetEvent('crime_laptop:server:register', function(username)
     local source = source
-    print('[Crime Laptop] === REGISTER START ===')
-    print('[Crime Laptop] Player: ' .. source .. ' | Username: ' .. tostring(username))
 
     local license = GetPlayerLicense(source)
-    print('[Crime Laptop] License: ' .. tostring(license))
-
     if not license then
-        print('[Crime Laptop] FAIL: No license')
-        NotifyClient(source, 'License not found', 'error')
+        TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil, 'License not found')
         return
     end
 
-    if not username or #username < 3 or #username > 20 then
-        print('[Crime Laptop] FAIL: Invalid username length: ' .. tostring(#username))
-        NotifyClient(source, 'Alias must be 3-20 characters', 'error')
+    if not username or #username < 3 then
+        TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil, 'Alias must be at least 3 characters')
         return
     end
 
-    local existing = nil
-    local findErr = nil
-    existing, findErr = pcall(function()
-        return Profiles.GetByUsername(username)
-    end)
-    print('[Crime Laptop] Existing check: ' .. tostring(existing) .. ' | Result: ' .. tostring(findErr))
-
-    if existing and findErr then
-        print('[Crime Laptop] FAIL: Username taken')
-        NotifyClient(source, 'Alias already taken', 'error')
+    if #username > 20 then
+        TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil, 'Alias must be 20 characters or less')
         return
     end
 
-    local insertOk, insertErr = pcall(function()
-        return Profiles.Create(license, username)
-    end)
-    print('[Crime Laptop] Create result: ' .. tostring(insertOk) .. ' | ' .. tostring(insertErr))
-
-    if not insertOk then
-        print('[Crime Laptop] FAIL: Create error: ' .. tostring(insertErr))
-        NotifyClient(source, 'Error: ' .. tostring(insertErr), 'error')
+    if not string.match(username, '^[%w_]+$') then
+        TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil, 'Alias can only contain letters, numbers, and underscores')
         return
     end
 
-    local profile = insertErr
+    local profile, err = Profiles.Create(license, username)
+
     if profile then
-        print('[Crime Laptop] SUCCESS: Registered as ' .. username)
+        print('[Crime Laptop] Player ' .. source .. ' (' .. license .. ') registered as: ' .. username)
         TriggerClientEvent('crime_laptop:client:openLaptop', source, true, profile)
     else
-        print('[Crime Laptop] FAIL: Profile nil after create')
-        NotifyClient(source, 'Registration failed - profile nil', 'error')
+        print('[Crime Laptop] Registration failed for player ' .. source .. ': ' .. tostring(err))
+        TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil, err or 'Registration failed')
     end
-    print('[Crime Laptop] === REGISTER END ===')
 end)
 
 RegisterNetEvent('crime_laptop:server:getProfile', function()
@@ -277,3 +257,16 @@ RegisterNetEvent('crime_laptop:server:buyListing', function(listingId)
         NotifyClient(sellerSource, 'Your listing sold: ' .. listing.amount .. 'x ' .. listing.item_label .. ' for $' .. listing.price, 'success')
     end
 end)
+
+RegisterCommand('resetprofile', function(source, args, rawCommand)
+    local targetId = tonumber(args[1]) or source
+    local license = GetPlayerLicense(targetId)
+    if not license then
+        print('[Crime Laptop] No license found for player ' .. targetId)
+        return
+    end
+
+    exports.oxmysql:execute('DELETE FROM ' .. Config.Database.profiles .. ' WHERE license = ?', { license })
+    exports.oxmysql:execute('DELETE FROM ' .. Config.Database.listings .. ' WHERE seller_license = ?', { license })
+    print('[Crime Laptop] Reset profile for player ' .. targetId .. ' (license: ' .. license .. ')')
+end, false)

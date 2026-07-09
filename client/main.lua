@@ -22,11 +22,12 @@ local function CloseLaptop()
     SendNUIMessage({ action = 'close' })
 end
 
-RegisterNetEvent('crime_laptop:client:openLaptop', function(hasProfile, profile)
+RegisterNetEvent('crime_laptop:client:openLaptop', function(hasProfile, profile, errorMsg)
     SendNUIMessage({
         action = 'open',
         hasProfile = hasProfile,
-        profile = profile
+        profile = profile,
+        message = errorMsg
     })
 end)
 

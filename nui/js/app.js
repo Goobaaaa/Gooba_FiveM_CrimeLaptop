@@ -18,14 +18,17 @@ const App = {
 
         switch (data.action) {
             case 'open':
-                this.isOpen = true;
-                this.profile = null;
-                document.getElementById('laptop').classList.remove('hidden');
-
                 if (data.hasProfile) {
                     this.profile = data.profile;
                     this.showMain();
+                } else if (data.message) {
+                    const errorEl = document.getElementById('login-error');
+                    errorEl.textContent = data.message;
+                    errorEl.classList.remove('hidden');
+                    document.getElementById('login-btn').disabled = false;
                 } else {
+                    this.isOpen = true;
+                    document.getElementById('laptop').classList.remove('hidden');
                     this.showLogin();
                 }
                 break;
@@ -125,15 +128,10 @@ const App = {
         }
 
         errorEl.classList.add('hidden');
-        const result = await API.register(username);
+        document.getElementById('login-btn').disabled = true;
+        document.getElementById('login-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
 
-        if (result && result.success) {
-            this.profile = result.profile;
-            this.showMain();
-        } else {
-            errorEl.textContent = result?.message || 'Registration failed';
-            errorEl.classList.remove('hidden');
-        }
+        await API.register(username);
     },
 
     showLogin() {

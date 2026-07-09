@@ -29,8 +29,13 @@ function Profiles.GetByUsername(username)
 end
 
 function Profiles.Create(license, username)
-    local existing = Profiles.GetByUsername(username)
-    if existing then
+    local existingByLicense = Profiles.GetByLicense(license)
+    if existingByLicense then
+        return existingByLicense
+    end
+
+    local existingByUsername = Profiles.GetByUsername(username)
+    if existingByUsername then
         return nil, 'Alias already taken'
     end
 
