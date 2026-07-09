@@ -1,7 +1,19 @@
 Profiles = {}
 
+local function Query(sql, params)
+    return exports.oxmysql:execute(sql, params)
+end
+
+local function Insert(sql, params)
+    return exports.oxmysql:insert(sql, params)
+end
+
+local function Update(sql, params)
+    return exports.oxmysql:update(sql, params)
+end
+
 function Profiles.GetByLicense(license)
-    local result = MySQL.query.await(
+    local result = Query(
         'SELECT * FROM ' .. Config.Database.profiles .. ' WHERE license = ?',
         { license }
     )
@@ -9,7 +21,7 @@ function Profiles.GetByLicense(license)
 end
 
 function Profiles.GetByUsername(username)
-    local result = MySQL.query.await(
+    local result = Query(
         'SELECT * FROM ' .. Config.Database.profiles .. ' WHERE username = ?',
         { username }
     )
@@ -22,7 +34,7 @@ function Profiles.Create(license, username)
         return nil, 'Alias already taken'
     end
 
-    MySQL.insert.await(
+    Insert(
         'INSERT INTO ' .. Config.Database.profiles .. ' (license, username, balance) VALUES (?, ?, ?)',
         { license, username, 0 }
     )
@@ -36,12 +48,12 @@ function Profiles.UpdateUsername(license, newUsername)
         return false, 'Alias already taken'
     end
 
-    MySQL.update.await(
+    Update(
         'UPDATE ' .. Config.Database.profiles .. ' SET username = ? WHERE license = ?',
         { newUsername, license }
     )
 
-    MySQL.update.await(
+    Update(
         'UPDATE ' .. Config.Database.listings .. ' SET seller_username = ? WHERE seller_license = ?',
         { newUsername, license }
     )
@@ -50,7 +62,7 @@ function Profiles.UpdateUsername(license, newUsername)
 end
 
 function Profiles.AddBalance(license, amount)
-    MySQL.update.await(
+    Update(
         'UPDATE ' .. Config.Database.profiles .. ' SET balance = balance + ? WHERE license = ?',
         { amount, license }
     )
@@ -62,7 +74,7 @@ function Profiles.RemoveBalance(license, amount)
         return false, 'Insufficient balance'
     end
 
-    MySQL.update.await(
+    Update(
         'UPDATE ' .. Config.Database.profiles .. ' SET balance = balance - ? WHERE license = ?',
         { amount, license }
     )
@@ -70,7 +82,7 @@ function Profiles.RemoveBalance(license, amount)
 end
 
 function Profiles.IncrementStat(license, stat, amount)
-    MySQL.update.await(
+    Update(
         'UPDATE ' .. Config.Database.profiles .. ' SET ' .. stat .. ' = ' .. stat .. ' + ? WHERE license = ?',
         { amount or 1, license }
     )

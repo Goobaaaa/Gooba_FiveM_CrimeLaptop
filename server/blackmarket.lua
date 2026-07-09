@@ -1,5 +1,13 @@
 BlackMarket = {}
 
+local function Query(sql, params)
+    return exports.oxmysql:execute(sql, params)
+end
+
+local function Insert(sql, params)
+    return exports.oxmysql:insert(sql, params)
+end
+
 function BlackMarket.GetListings(search, filter)
     local query = 'SELECT * FROM ' .. Config.Database.listings
     local params = {}
@@ -24,7 +32,7 @@ function BlackMarket.GetListings(search, filter)
 
     query = query .. ' ORDER BY created_at DESC LIMIT 50'
 
-    return MySQL.query.await(query, params) or {}
+    return Query(query, params) or {}
 end
 
 function BlackMarket.CreateListing(license, username, itemName, itemLabel, amount, price)
@@ -36,16 +44,16 @@ function BlackMarket.CreateListing(license, username, itemName, itemLabel, amoun
         return false, 'Price too high'
     end
 
-    local count = MySQL.scalar.await(
-        'SELECT COUNT(*) FROM ' .. Config.Database.listings .. ' WHERE seller_license = ?',
+    local count = Query(
+        'SELECT COUNT(*) as count FROM ' .. Config.Database.listings .. ' WHERE seller_license = ?',
         { license }
     )
 
-    if count and count >= Config.BlackMarket.MaxListingsPerPlayer then
+    if count and count[1] and count[1].count >= Config.BlackMarket.MaxListingsPerPlayer then
         return false, 'Maximum listings reached (' .. Config.BlackMarket.MaxListingsPerPlayer .. ')'
     end
 
-    MySQL.insert.await(
+    Insert(
         'INSERT INTO ' .. Config.Database.listings .. ' (seller_license, seller_username, item_name, item_label, amount, price) VALUES (?, ?, ?, ?, ?, ?)',
         { license, username, itemName, itemLabel, amount, price }
     )
@@ -54,7 +62,7 @@ function BlackMarket.CreateListing(license, username, itemName, itemLabel, amoun
 end
 
 function BlackMarket.GetListing(id)
-    local result = MySQL.query.await(
+    local result = Query(
         'SELECT * FROM ' .. Config.Database.listings .. ' WHERE id = ?',
         { id }
     )
@@ -62,14 +70,14 @@ function BlackMarket.GetListing(id)
 end
 
 function BlackMarket.DeleteListing(id)
-    MySQL.query.await(
+    Query(
         'DELETE FROM ' .. Config.Database.listings .. ' WHERE id = ?',
         { id }
     )
 end
 
 function BlackMarket.DeleteListingsByLicense(license)
-    MySQL.query.await(
+    Query(
         'DELETE FROM ' .. Config.Database.listings .. ' WHERE seller_license = ?',
         { license }
     )

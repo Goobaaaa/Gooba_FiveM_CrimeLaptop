@@ -1,7 +1,11 @@
 print('[Crime Laptop] Server script loading...')
 
 CreateThread(function()
-    MySQL.query.await([[
+    while not exports.oxmysql do
+        Wait(100)
+    end
+
+    exports.oxmysql:execute([[
         CREATE TABLE IF NOT EXISTS `crime_laptop_profiles` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `license` VARCHAR(60) NOT NULL UNIQUE,
@@ -14,7 +18,7 @@ CreateThread(function()
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ]])
 
-    MySQL.query.await([[
+    exports.oxmysql:execute([[
         CREATE TABLE IF NOT EXISTS `crime_laptop_listings` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `seller_license` VARCHAR(60) NOT NULL,
