@@ -75,12 +75,15 @@ end)
 
 RegisterNetEvent('crime_laptop:server:register', function(username)
     local source = source
+    print('[Crime Laptop] Register request from player ' .. source .. ': ' .. tostring(username))
 
     local license = GetPlayerLicense(source)
     if not license then
+        print('[Crime Laptop] No license found')
         TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil, 'License not found')
         return
     end
+    print('[Crime Laptop] License: ' .. license)
 
     if not username or #username < 3 then
         TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil, 'Alias must be at least 3 characters')
@@ -97,14 +100,22 @@ RegisterNetEvent('crime_laptop:server:register', function(username)
         return
     end
 
-    local profile, err = Profiles.Create(license, username)
+    print('[Crime Laptop] Calling Profiles.Create...')
+    local ok, result = pcall(Profiles.Create, license, username)
+    print('[Crime Laptop] pcall result: ok=' .. tostring(ok) .. ' result=' .. tostring(result))
 
-    if profile then
-        print('[Crime Laptop] Player ' .. source .. ' (' .. license .. ') registered as: ' .. username)
-        TriggerClientEvent('crime_laptop:client:openLaptop', source, true, profile)
+    if not ok then
+        print('[Crime Laptop] Create error: ' .. tostring(result))
+        TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil, 'Database error: ' .. tostring(result))
+        return
+    end
+
+    if result then
+        print('[Crime Laptop] SUCCESS: Player ' .. source .. ' registered as ' .. username)
+        TriggerClientEvent('crime_laptop:client:openLaptop', source, true, result)
     else
-        print('[Crime Laptop] Registration failed for player ' .. source .. ': ' .. tostring(err))
-        TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil, err or 'Registration failed')
+        print('[Crime Laptop] FAIL: Profiles.Create returned nil')
+        TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil, 'Registration failed')
     end
 end)
 
