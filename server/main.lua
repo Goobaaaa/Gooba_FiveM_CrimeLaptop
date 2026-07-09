@@ -1,3 +1,5 @@
+print('[Crime Laptop] Server script loading...')
+
 CreateThread(function()
     MySQL.query.await([[
         CREATE TABLE IF NOT EXISTS `crime_laptop_profiles` (
