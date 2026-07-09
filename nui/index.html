@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rugged Laptop</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div id="laptop" class="hidden">
+        <!-- Login Screen -->
+        <div id="login-screen">
+            <div class="login-container">
+                <div class="login-icon">
+                    <i class="fas fa-user-secret"></i>
+                </div>
+                <h2>Access Terminal</h2>
+                <p class="login-subtitle">Create your criminal alias to continue</p>
+                <div class="input-group">
+                    <input type="text" id="username-input" placeholder="Choose an alias..." maxlength="20" autocomplete="off">
+                </div>
+                <button id="login-btn" class="btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Register
+                </button>
+                <div id="login-error" class="error-text hidden"></div>
+            </div>
+        </div>
+
+        <!-- Main Interface -->
+        <div id="main-interface" class="hidden">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <i class="fas fa-laptop-code"></i>
+                    <span>DARKNET</span>
+                </div>
+                <nav class="sidebar-nav">
+                    <a class="nav-item active" data-page="home">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a class="nav-item" data-page="blackmarket">
+                        <i class="fas fa-store"></i>
+                        <span>Black Market</span>
+                    </a>
+                    <a class="nav-item" data-page="jobs">
+                        <i class="fas fa-briefcase"></i>
+                        <span>Jobs</span>
+                    </a>
+                    <a class="nav-item" data-page="about">
+                        <i class="fas fa-user"></i>
+                        <span>About</span>
+                    </a>
+                </nav>
+                <div class="sidebar-footer">
+                    <button id="close-laptop" class="btn-close-laptop">
+                        <i class="fas fa-power-off"></i>
+                        <span>Shutdown</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content">
+                <!-- Top Bar -->
+                <div class="topbar">
+                    <div class="topbar-left">
+                        <span id="page-title">Home</span>
+                    </div>
+                    <div class="topbar-right">
+                        <span id="user-balance" class="balance-badge">
+                            <i class="fas fa-wallet"></i> $0
+                        </span>
+                        <span id="user-alias" class="alias-badge">
+                            <i class="fas fa-mask"></i> <span id="alias-text">---</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Page Container -->
+                <div class="page-container">
+                    <!-- Home Page -->
+                    <div id="page-home" class="page active">
+                        <div class="welcome-section">
+                            <h1>Welcome, <span id="welcome-name">---</span></h1>
+                            <p class="welcome-sub">Your criminal operations dashboard</p>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Balance</span>
+                                    <span class="stat-value" id="home-balance">$0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Jobs Done</span>
+                                    <span class="stat-value" id="home-jobs">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon"><i class="fas fa-box"></i></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Items Sold</span>
+                                    <span class="stat-value" id="home-sold">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Total Earned</span>
+                                    <span class="stat-value" id="home-earned">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3><i class="fas fa-info-circle"></i> Operations Feed</h3>
+                            <div class="feed-list">
+                                <div class="feed-item">
+                                    <i class="fas fa-circle"></i>
+                                    <span>System online. All operations nominal.</span>
+                                </div>
+                                <div class="feed-item">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Black Market listings refreshed.</span>
+                                </div>
+                                <div class="feed-item">
+                                    <i class="fas fa-circle"></i>
+                                    <span>New jobs available. Check the Jobs tab.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Black Market Page -->
+                    <div id="page-blackmarket" class="page">
+                        <div class="market-controls">
+                            <div class="market-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="market-search" placeholder="Search listings...">
+                            </div>
+                            <div class="market-actions">
+                                <button id="btn-create-listing" class="btn-accent">
+                                    <i class="fas fa-plus"></i> Create Listing
+                                </button>
+                                <button id="btn-refresh-market" class="btn-secondary">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="market-filter">
+                            <select id="market-filter">
+                                <option value="all">All Items</option>
+                            </select>
+                        </div>
+                        <div class="market-table">
+                            <div class="market-header">
+                                <span class="col-seller">Seller</span>
+                                <span class="col-item">Item</span>
+                                <span class="col-amount">Qty</span>
+                                <span class="col-price">Price</span>
+                                <span class="col-action">Action</span>
+                            </div>
+                            <div id="market-listings" class="market-body">
+                                <div class="market-empty">
+                                    <i class="fas fa-box-open"></i>
+                                    <p>No listings available</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jobs Page -->
+                    <div id="page-jobs" class="page">
+                        <div class="jobs-layout">
+                            <div class="jobs-list">
+                                <h3><i class="fas fa-list"></i> Available Jobs</h3>
+                                <div class="job-item" data-job="coming_soon_1">
+                                    <div class="job-icon"><i class="fas fa-lock"></i></div>
+                                    <div class="job-info">
+                                        <span class="job-name">Coming Soon</span>
+                                        <span class="job-desc">More jobs will be added</span>
+                                    </div>
+                                    <span class="job-status locked">Locked</span>
+                                </div>
+                            </div>
+                            <div class="job-detail">
+                                <h3><i class="fas fa-info-circle"></i> Job Details</h3>
+                                <div class="job-detail-content">
+                                    <p class="no-job-selected">Select a job from the list to view details</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About Page -->
+                    <div id="page-about" class="page">
+                        <div class="about-card">
+                            <div class="about-header">
+                                <div class="about-avatar">
+                                    <i class="fas fa-user-secret"></i>
+                                </div>
+                                <div class="about-name">
+                                    <h2 id="about-username">---</h2>
+                                    <p class="about-joined">Criminal Profile</p>
+                                </div>
+                            </div>
+                            <div class="about-stats">
+                                <div class="about-stat">
+                                    <span class="about-stat-label">Balance</span>
+                                    <span class="about-stat-value" id="about-balance">$0</span>
+                                </div>
+                                <div class="about-stat">
+                                    <span class="about-stat-label">Jobs Completed</span>
+                                    <span class="about-stat-value" id="about-jobs">0</span>
+                                </div>
+                                <div class="about-stat">
+                                    <span class="about-stat-label">Items Sold</span>
+                                    <span class="about-stat-value" id="about-sold">0</span>
+                                </div>
+                                <div class="about-stat">
+                                    <span class="about-stat-label">Total Earned</span>
+                                    <span class="about-stat-value" id="about-earned">$0</span>
+                                </div>
+                            </div>
+                            <div class="about-actions">
+                                <button id="btn-change-alias" class="btn-secondary">
+                                    <i class="fas fa-pen"></i> Change Alias
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Listing Modal -->
+        <div id="create-listing-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-plus"></i> Create Listing</h3>
+                    <button class="modal-close" id="close-modal"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label>Item Name</label>
+                        <input type="text" id="listing-item-name" placeholder="e.g. gold_nugget" autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <label>Item Label (Display Name)</label>
+                        <input type="text" id="listing-item-label" placeholder="e.g. Gold Nugget" autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <label>Amount</label>
+                        <input type="number" id="listing-amount" min="1" value="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Price ($)</label>
+                        <input type="number" id="listing-price" min="100" placeholder="100">
+                    </div>
+                    <button id="submit-listing" class="btn-accent btn-full">
+                        <i class="fas fa-check"></i> Submit Listing
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Alias Modal -->
+        <div id="change-alias-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-pen"></i> Change Alias</h3>
+                    <button class="modal-close" id="close-alias-modal"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label>New Alias</label>
+                        <input type="text" id="new-alias-input" placeholder="Choose a new alias..." maxlength="20" autocomplete="off">
+                    </div>
+                    <button id="submit-alias" class="btn-accent btn-full">
+                        <i class="fas fa-check"></i> Update Alias
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/pages.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
