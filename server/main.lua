@@ -10,7 +10,7 @@ CreateThread(function()
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `license` VARCHAR(60) NOT NULL UNIQUE,
             `username` VARCHAR(50) NOT NULL UNIQUE,
-            `balance` INT DEFAULT 0,
+            `crypto` INT DEFAULT 0,
             `jobs_completed` INT DEFAULT 0,
             `items_sold` INT DEFAULT 0,
             `total_earned` INT DEFAULT 0,
@@ -30,6 +30,18 @@ CreateThread(function()
             `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             INDEX `idx_seller` (`seller_license`),
             INDEX `idx_item` (`item_name`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ]])
+
+    exports.oxmysql:execute([[
+        CREATE TABLE IF NOT EXISTS `crime_laptop_crypto_history` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `license` VARCHAR(60) NOT NULL,
+            `type` VARCHAR(20) NOT NULL,
+            `amount` INT NOT NULL,
+            `description` VARCHAR(255) DEFAULT '',
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_license` (`license`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ]])
 
@@ -218,18 +230,18 @@ RegisterNetEvent('crime_laptop:server:buyListing', function(listingId)
         return
     end
 
-    if buyerProfile.balance < listing.price then
-        NotifyClient(source, 'Insufficient balance', 'error')
+    if buyerProfile.crypto < listing.price then
+        NotifyClient(source, 'Insufficient CRM', 'error')
         return
     end
 
-    local success, err = Profiles.RemoveBalance(license, listing.price)
+    local success, err = Profiles.RemoveCrypto(license, listing.price, 'Black Market purchase: ' .. listing.item_label)
     if not success then
-        NotifyClient(source, err or 'Insufficient balance', 'error')
+        NotifyClient(source, err or 'Insufficient CRM', 'error')
         return
     end
 
-    Profiles.AddBalance(listing.seller_license, listing.price)
+    Profiles.AddCrypto(listing.seller_license, listing.price, 'Black Market sale: ' .. listing.item_label)
     Profiles.IncrementStat(listing.seller_license, 'items_sold', listing.amount)
     Profiles.IncrementStat(listing.seller_license, 'total_earned', listing.price)
 
@@ -237,7 +249,7 @@ RegisterNetEvent('crime_laptop:server:buyListing', function(listingId)
 
     local given = FrameworkGiveItem(source, listing.item_name, listing.amount)
     if not given then
-        Profiles.AddBalance(license, listing.price)
+        Profiles.AddCrypto(license, listing.price, 'Refund: purchase failed')
         NotifyClient(source, 'Failed to give item', 'error')
         return
     end
@@ -254,8 +266,75 @@ RegisterNetEvent('crime_laptop:server:buyListing', function(listingId)
     end
 
     if sellerSource then
-        NotifyClient(sellerSource, 'Your listing sold: ' .. listing.amount .. 'x ' .. listing.item_label .. ' for $' .. listing.price, 'success')
+        NotifyClient(sellerSource, 'Your listing sold: ' .. listing.amount .. 'x ' .. listing.item_label .. ' for ' .. listing.price .. ' CRM', 'success')
     end
+end)
+
+RegisterNetEvent('crime_laptop:server:transferCrypto', function(toUsername, amount)
+    local source = source
+    local license = GetPlayerLicense(source)
+    if not license then return end
+
+    if not toUsername or #toUsername < 3 then
+        NotifyClient(source, 'Invalid recipient alias', 'error')
+        return
+    end
+
+    if not amount or amount <= 0 then
+        NotifyClient(source, 'Invalid amount', 'error')
+        return
+    end
+
+    local fromProfile = GetProfile(source)
+    if not fromProfile then
+        NotifyClient(source, 'Profile not found', 'error')
+        return
+    end
+
+    if fromProfile.crypto < amount then
+        NotifyClient(source, 'Insufficient CRM', 'error')
+        return
+    end
+
+    local toProfile = Profiles.GetByUsername(toUsername)
+    if not toProfile then
+        NotifyClient(source, 'Recipient not found', 'error')
+        return
+    end
+
+    if toProfile.license == license then
+        NotifyClient(source, 'Cannot transfer to yourself', 'error')
+        return
+    end
+
+    local success, err = Profiles.TransferCrypto(license, toProfile.license, amount, 'Transfer to ' .. toUsername)
+    if success then
+        NotifyClient(source, 'Sent ' .. amount .. ' CRM to ' .. toUsername, 'success')
+        local profile = GetProfile(source)
+        if profile then
+            TriggerClientEvent('crime_laptop:client:profileData', source, profile)
+        end
+    else
+        NotifyClient(source, err or 'Transfer failed', 'error')
+    end
+end)
+
+RegisterNetEvent('crime_laptop:server:getCryptoHistory', function()
+    local source = source
+    local license = GetPlayerLicense(source)
+    if not license then return end
+
+    local history = Profiles.GetCryptoHistory(license, 50)
+    TriggerClientEvent('crime_laptop:client:cryptoHistory', source, history)
+end)
+
+RegisterNetEvent('crime_laptop:server:getCryptoGraph', function()
+    local source = source
+    local license = GetPlayerLicense(source)
+    if not license then return end
+
+    local history = Profiles.GetCryptoHistoryForGraph(license)
+    TriggerClientEvent('crime_laptop:client:cryptoGraph', source, history)
 end)
 
 RegisterCommand('resetprofile', function(source, args, rawCommand)
@@ -268,5 +347,6 @@ RegisterCommand('resetprofile', function(source, args, rawCommand)
 
     exports.oxmysql:execute('DELETE FROM ' .. Config.Database.profiles .. ' WHERE license = ?', { license })
     exports.oxmysql:execute('DELETE FROM ' .. Config.Database.listings .. ' WHERE seller_license = ?', { license })
+    exports.oxmysql:execute('DELETE FROM ' .. Config.Database.crypto_history .. ' WHERE license = ?', { license })
     print('[Crime Laptop] Reset profile for player ' .. targetId .. ' (license: ' .. license .. ')')
 end, false)

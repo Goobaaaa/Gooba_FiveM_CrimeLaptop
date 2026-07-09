@@ -44,6 +44,10 @@
                         <i class="fas fa-store"></i>
                         <span>Black Market</span>
                     </a>
+                    <a class="nav-item" data-page="crypto">
+                        <i class="fas fa-coins"></i>
+                        <span>Crypto</span>
+                    </a>
                     <a class="nav-item" data-page="jobs">
                         <i class="fas fa-briefcase"></i>
                         <span>Jobs</span>
@@ -69,8 +73,8 @@
                         <span id="page-title">Home</span>
                     </div>
                     <div class="topbar-right">
-                        <span id="user-balance" class="balance-badge">
-                            <i class="fas fa-wallet"></i> $0
+                        <span id="user-crypto" class="crypto-badge">
+                            <i class="fas fa-coins"></i> 0 CRM
                         </span>
                         <span id="user-alias" class="alias-badge">
                             <i class="fas fa-mask"></i> <span id="alias-text">---</span>
@@ -88,10 +92,10 @@
                         </div>
                         <div class="stats-grid">
                             <div class="stat-card">
-                                <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+                                <div class="stat-icon crypto"><i class="fas fa-coins"></i></div>
                                 <div class="stat-info">
-                                    <span class="stat-label">Balance</span>
-                                    <span class="stat-value" id="home-balance">$0</span>
+                                    <span class="stat-label">Crypto</span>
+                                    <span class="stat-value" id="home-crypto">0 CRM</span>
                                 </div>
                             </div>
                             <div class="stat-card">
@@ -112,7 +116,7 @@
                                 <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
                                 <div class="stat-info">
                                     <span class="stat-label">Total Earned</span>
-                                    <span class="stat-value" id="home-earned">$0</span>
+                                    <span class="stat-value" id="home-earned">0 CRM</span>
                                 </div>
                             </div>
                         </div>
@@ -173,6 +177,42 @@
                         </div>
                     </div>
 
+                    <!-- Crypto Page -->
+                    <div id="page-crypto" class="page">
+                        <div class="crypto-header">
+                            <div class="crypto-balance-large">
+                                <i class="fas fa-coins"></i>
+                                <div>
+                                    <span class="crypto-amount" id="crypto-total">0</span>
+                                    <span class="crypto-label">CRM</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="crypto-actions">
+                            <button id="btn-transfer-crypto" class="btn-accent">
+                                <i class="fas fa-paper-plane"></i> Transfer CRM
+                            </button>
+                            <button id="btn-refresh-crypto" class="btn-secondary">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        <div class="crypto-graph-section">
+                            <h3><i class="fas fa-chart-area"></i> CRM History</h3>
+                            <div class="crypto-graph-container">
+                                <canvas id="crypto-graph" width="600" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="crypto-history-section">
+                            <h3><i class="fas fa-history"></i> Recent Transactions</h3>
+                            <div id="crypto-history-list" class="crypto-history-list">
+                                <div class="market-empty">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>No transactions yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Jobs Page -->
                     <div id="page-jobs" class="page">
                         <div class="jobs-layout">
@@ -210,8 +250,8 @@
                             </div>
                             <div class="about-stats">
                                 <div class="about-stat">
-                                    <span class="about-stat-label">Balance</span>
-                                    <span class="about-stat-value" id="about-balance">$0</span>
+                                    <span class="about-stat-label">Crypto</span>
+                                    <span class="about-stat-value" id="about-crypto">0 CRM</span>
                                 </div>
                                 <div class="about-stat">
                                     <span class="about-stat-label">Jobs Completed</span>
@@ -223,7 +263,7 @@
                                 </div>
                                 <div class="about-stat">
                                     <span class="about-stat-label">Total Earned</span>
-                                    <span class="about-stat-value" id="about-earned">$0</span>
+                                    <span class="about-stat-value" id="about-earned">0 CRM</span>
                                 </div>
                             </div>
                             <div class="about-actions">
@@ -258,7 +298,7 @@
                         <input type="number" id="listing-amount" min="1" value="1">
                     </div>
                     <div class="input-group">
-                        <label>Price ($)</label>
+                        <label>Price (CRM)</label>
                         <input type="number" id="listing-price" min="100" placeholder="100">
                     </div>
                     <button id="submit-listing" class="btn-accent btn-full">
@@ -282,6 +322,29 @@
                     </div>
                     <button id="submit-alias" class="btn-accent btn-full">
                         <i class="fas fa-check"></i> Update Alias
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transfer Crypto Modal -->
+        <div id="transfer-crypto-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-paper-plane"></i> Transfer CRM</h3>
+                    <button class="modal-close" id="close-transfer-modal"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label>Recipient Alias</label>
+                        <input type="text" id="transfer-to-username" placeholder="Enter alias..." autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <label>Amount (CRM)</label>
+                        <input type="number" id="transfer-amount" min="1" placeholder="0">
+                    </div>
+                    <button id="submit-transfer" class="btn-accent btn-full">
+                        <i class="fas fa-check"></i> Send CRM
                     </button>
                 </div>
             </div>

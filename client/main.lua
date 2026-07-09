@@ -88,6 +88,35 @@ RegisterNUICallback('close', function(data, cb)
     cb({ ok = true })
 end)
 
+RegisterNetEvent('crime_laptop:client:cryptoHistory', function(history)
+    SendNUIMessage({
+        action = 'cryptoHistory',
+        history = history
+    })
+end)
+
+RegisterNetEvent('crime_laptop:client:cryptoGraph', function(history)
+    SendNUIMessage({
+        action = 'cryptoGraph',
+        history = history
+    })
+end)
+
+RegisterNUICallback('transferCrypto', function(data, cb)
+    TriggerServerEvent('crime_laptop:server:transferCrypto', data.toUsername, data.amount)
+    cb({ ok = true })
+end)
+
+RegisterNUICallback('getCryptoHistory', function(data, cb)
+    TriggerServerEvent('crime_laptop:server:getCryptoHistory')
+    cb({ ok = true })
+end)
+
+RegisterNUICallback('getCryptoGraph', function(data, cb)
+    TriggerServerEvent('crime_laptop:server:getCryptoGraph')
+    cb({ ok = true })
+end)
+
 RegisterCommand('laptop', function()
     OpenLaptop()
 end, false)

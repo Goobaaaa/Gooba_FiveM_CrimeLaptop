@@ -36,6 +36,18 @@ const API = {
         return await this.fetch('buyListing', { id: listingId });
     },
 
+    async transferCrypto(toUsername, amount) {
+        return await this.fetch('transferCrypto', { toUsername, amount });
+    },
+
+    async getCryptoHistory() {
+        return await this.fetch('getCryptoHistory');
+    },
+
+    async getCryptoGraph() {
+        return await this.fetch('getCryptoGraph');
+    },
+
     async close() {
         return await this.fetch('close');
     }

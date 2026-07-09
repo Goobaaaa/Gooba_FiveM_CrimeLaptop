@@ -26,6 +26,7 @@ const App = {
                     errorEl.textContent = data.message;
                     errorEl.classList.remove('hidden');
                     document.getElementById('login-btn').disabled = false;
+                    document.getElementById('login-btn').innerHTML = '<i class="fas fa-sign-in-alt"></i> Register';
                 } else {
                     this.isOpen = true;
                     document.getElementById('laptop').classList.remove('hidden');
@@ -46,6 +47,14 @@ const App = {
             case 'listingsData':
                 Pages.renderListings(data.listings);
                 Pages.populateFilter(data.listings || []);
+                break;
+
+            case 'cryptoHistory':
+                Pages.renderCryptoHistory(data.history);
+                break;
+
+            case 'cryptoGraph':
+                Pages.renderCryptoGraph(data.history);
                 break;
 
             case 'notify':
@@ -108,6 +117,22 @@ const App = {
         document.getElementById('market-filter').addEventListener('change', () => {
             this.loadListings();
         });
+
+        document.getElementById('btn-transfer-crypto').addEventListener('click', () => {
+            document.getElementById('transfer-crypto-modal').classList.remove('hidden');
+        });
+
+        document.getElementById('close-transfer-modal').addEventListener('click', () => {
+            document.getElementById('transfer-crypto-modal').classList.add('hidden');
+        });
+
+        document.getElementById('submit-transfer').addEventListener('click', () => {
+            this.submitTransfer();
+        });
+
+        document.getElementById('btn-refresh-crypto').addEventListener('click', () => {
+            this.loadCryptoPage();
+        });
     },
 
     async register() {
@@ -139,6 +164,8 @@ const App = {
         document.getElementById('main-interface').classList.add('hidden');
         document.getElementById('username-input').value = '';
         document.getElementById('login-error').classList.add('hidden');
+        document.getElementById('login-btn').disabled = false;
+        document.getElementById('login-btn').innerHTML = '<i class="fas fa-sign-in-alt"></i> Register';
     },
 
     showMain() {
@@ -154,6 +181,7 @@ const App = {
         Pages.updateTopbar(this.profile);
         Pages.renderHome(this.profile);
         Pages.renderAbout(this.profile);
+        Pages.renderCryptoPage(this.profile);
     },
 
     navigateTo(page) {
@@ -167,11 +195,15 @@ const App = {
             p.classList.toggle('active', p.id === 'page-' + page);
         });
 
-        const titles = { home: 'Home', blackmarket: 'Black Market', jobs: 'Jobs', about: 'About' };
+        const titles = { home: 'Home', blackmarket: 'Black Market', crypto: 'Crypto', jobs: 'Jobs', about: 'About' };
         document.getElementById('page-title').textContent = titles[page] || page;
 
         if (page === 'blackmarket') {
             this.loadListings();
+        }
+
+        if (page === 'crypto') {
+            this.loadCryptoPage();
         }
     },
 
@@ -179,6 +211,14 @@ const App = {
         const search = document.getElementById('market-search')?.value || '';
         const filter = document.getElementById('market-filter')?.value || 'all';
         await API.getListings(search, filter);
+    },
+
+    async loadCryptoPage() {
+        if (this.profile) {
+            Pages.renderCryptoPage(this.profile);
+        }
+        await API.getCryptoHistory();
+        await API.getCryptoGraph();
     },
 
     async submitListing() {
@@ -193,7 +233,7 @@ const App = {
         }
 
         if (price < 100) {
-            this.showNotification('Minimum price is $100', 'error');
+            this.showNotification('Minimum price is 100 CRM', 'error');
             return;
         }
 
@@ -222,6 +262,26 @@ const App = {
         } else {
             this.showNotification(result?.message || 'Purchase failed', 'error');
         }
+    },
+
+    async submitTransfer() {
+        const toUsername = document.getElementById('transfer-to-username').value.trim();
+        const amount = parseInt(document.getElementById('transfer-amount').value) || 0;
+
+        if (!toUsername) {
+            this.showNotification('Please enter a recipient alias', 'error');
+            return;
+        }
+
+        if (amount <= 0) {
+            this.showNotification('Please enter a valid amount', 'error');
+            return;
+        }
+
+        await API.transferCrypto(toUsername, amount);
+        document.getElementById('transfer-crypto-modal').classList.add('hidden');
+        document.getElementById('transfer-to-username').value = '';
+        document.getElementById('transfer-amount').value = '';
     },
 
     async submitAlias() {

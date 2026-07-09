@@ -5,7 +5,8 @@ Config.Debug = true
 
 Config.Database = {
     profiles = 'crime_laptop_profiles',
-    listings = 'crime_laptop_listings'
+    listings = 'crime_laptop_listings',
+    crypto_history = 'crime_laptop_crypto_history'
 }
 
 Config.BlackMarket = {
