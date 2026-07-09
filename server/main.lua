@@ -45,6 +45,11 @@ CreateThread(function()
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ]])
 
+    exports.oxmysql:execute([[
+        ALTER TABLE `crime_laptop_listings`
+        ADD COLUMN IF NOT EXISTS `status` ENUM('pending', 'active', 'sold', 'cancelled') DEFAULT 'pending'
+    ]])
+
     DebugPrint('Database tables ready')
 end)
 
