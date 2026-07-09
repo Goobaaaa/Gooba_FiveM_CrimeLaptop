@@ -75,40 +75,57 @@ end)
 
 RegisterNetEvent('crime_laptop:server:register', function(username)
     local source = source
-    print('[Crime Laptop] Register called by player ' .. source .. ' with username: ' .. tostring(username))
+    print('[Crime Laptop] === REGISTER START ===')
+    print('[Crime Laptop] Player: ' .. source .. ' | Username: ' .. tostring(username))
+
     local license = GetPlayerLicense(source)
+    print('[Crime Laptop] License: ' .. tostring(license))
+
     if not license then
-        print('[Crime Laptop] No license found for player ' .. source)
+        print('[Crime Laptop] FAIL: No license')
         NotifyClient(source, 'License not found', 'error')
         return
     end
-    print('[Crime Laptop] License: ' .. license)
 
     if not username or #username < 3 or #username > 20 then
-        print('[Crime Laptop] Invalid username length')
+        print('[Crime Laptop] FAIL: Invalid username length: ' .. tostring(#username))
         NotifyClient(source, 'Alias must be 3-20 characters', 'error')
         return
     end
 
-    print('[Crime Laptop] Calling Profiles.Create...')
-    local success, profileErr = pcall(function()
-        return Profiles.Create(license, username)
+    local existing = nil
+    local findErr = nil
+    existing, findErr = pcall(function()
+        return Profiles.GetByUsername(username)
     end)
+    print('[Crime Laptop] Existing check: ' .. tostring(existing) .. ' | Result: ' .. tostring(findErr))
 
-    if not success then
-        print('[Crime Laptop] Profiles.Create ERROR: ' .. tostring(profileErr))
-        NotifyClient(source, 'Database error: ' .. tostring(profileErr), 'error')
+    if existing and findErr then
+        print('[Crime Laptop] FAIL: Username taken')
+        NotifyClient(source, 'Alias already taken', 'error')
         return
     end
 
-    local profile = profileErr
+    local insertOk, insertErr = pcall(function()
+        return Profiles.Create(license, username)
+    end)
+    print('[Crime Laptop] Create result: ' .. tostring(insertOk) .. ' | ' .. tostring(insertErr))
+
+    if not insertOk then
+        print('[Crime Laptop] FAIL: Create error: ' .. tostring(insertErr))
+        NotifyClient(source, 'Error: ' .. tostring(insertErr), 'error')
+        return
+    end
+
+    local profile = insertErr
     if profile then
-        print('[Crime Laptop] Player ' .. source .. ' registered as: ' .. username)
+        print('[Crime Laptop] SUCCESS: Registered as ' .. username)
         TriggerClientEvent('crime_laptop:client:openLaptop', source, true, profile)
     else
-        print('[Crime Laptop] Profile is nil after create')
-        NotifyClient(source, 'Registration failed', 'error')
+        print('[Crime Laptop] FAIL: Profile nil after create')
+        NotifyClient(source, 'Registration failed - profile nil', 'error')
     end
+    print('[Crime Laptop] === REGISTER END ===')
 end)
 
 RegisterNetEvent('crime_laptop:server:getProfile', function()
