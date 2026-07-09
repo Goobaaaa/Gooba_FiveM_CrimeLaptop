@@ -1,6 +1,3 @@
-local Profiles = require 'server/profiles.lua'
-local BlackMarket = require 'server/blackmarket.lua'
-
 CreateThread(function()
     MySQL.query.await([[
         CREATE TABLE IF NOT EXISTS `crime_laptop_profiles` (
@@ -74,10 +71,13 @@ end)
 
 RegisterNetEvent('crime_laptop:server:requestOpen', function()
     local source = source
+    print('[Crime Laptop] Server received requestOpen from player ' .. source)
     local profile = GetProfile(source)
     if profile then
+        print('[Crime Laptop] Profile found: ' .. profile.username)
         TriggerClientEvent('crime_laptop:client:openLaptop', source, true, profile)
     else
+        print('[Crime Laptop] No profile found, showing login')
         TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil)
     end
 end)

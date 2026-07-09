@@ -1,4 +1,4 @@
-local Profiles = {}
+Profiles = {}
 
 function Profiles.GetByLicense(license)
     local result = MySQL.query.await(

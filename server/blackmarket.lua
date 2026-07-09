@@ -1,4 +1,4 @@
-local BlackMarket = {}
+BlackMarket = {}
 
 function BlackMarket.GetListings(search, filter)
     local query = 'SELECT * FROM ' .. Config.Database.listings

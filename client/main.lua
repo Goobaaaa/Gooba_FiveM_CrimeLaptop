@@ -1,9 +1,13 @@
 local isLaptopOpen = false
 
 local function OpenLaptop()
-    if isLaptopOpen then return end
+    print('[Crime Laptop] OpenLaptop called')
+    if isLaptopOpen then
+        print('[Crime Laptop] Already open, returning')
+        return
+    end
     isLaptopOpen = true
-
+    print('[Crime Laptop] Triggering server requestOpen')
     TriggerServerEvent('crime_laptop:server:requestOpen')
 end
 
@@ -16,8 +20,13 @@ local function CloseLaptop()
 end
 
 RegisterNetEvent('crime_laptop:client:openLaptop', function(hasProfile, profile)
-    if not isLaptopOpen then return end
+    print('[Crime Laptop] Client received openLaptop event, isLaptopOpen=' .. tostring(isLaptopOpen))
+    if not isLaptopOpen then
+        print('[Crime Laptop] isLaptopOpen is false, ignoring event')
+        return
+    end
 
+    print('[Crime Laptop] Setting NUI focus and opening UI')
     SetNuiFocus(true, true)
     SendNUIMessage({
         action = 'open',
