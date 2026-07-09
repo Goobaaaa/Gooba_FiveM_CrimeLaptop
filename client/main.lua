@@ -156,6 +156,13 @@ RegisterNetEvent('crime_laptop:client:listingsData', function(listings)
     })
 end)
 
+RegisterNetEvent('crime_laptop:client:myListingsData', function(listings)
+    SendNUIMessage({
+        action = 'myListingsData',
+        listings = listings
+    })
+end)
+
 RegisterNetEvent('crime_laptop:client:inventoryData', function(items)
     SendNUIMessage({
         action = 'inventoryData',
@@ -222,6 +229,16 @@ end)
 
 RegisterNUICallback('buyListing', function(data, cb)
     TriggerServerEvent('crime_laptop:server:buyListing', data.id)
+    cb({ ok = true })
+end)
+
+RegisterNUICallback('getMyListings', function(data, cb)
+    TriggerServerEvent('crime_laptop:server:getMyListings')
+    cb({ ok = true })
+end)
+
+RegisterNUICallback('cancelListing', function(data, cb)
+    TriggerServerEvent('crime_laptop:server:cancelListing', data)
     cb({ ok = true })
 end)
 

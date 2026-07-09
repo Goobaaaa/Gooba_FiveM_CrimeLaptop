@@ -141,37 +141,71 @@
 
                     <!-- Black Market Page -->
                     <div id="page-blackmarket" class="page">
-                        <div class="market-controls">
-                            <div class="market-search">
-                                <i class="fas fa-search"></i>
-                                <input type="text" id="market-search" placeholder="Search listings...">
+                        <div class="market-tabs">
+                            <button class="market-tab active" data-market-tab="browse">Browse</button>
+                            <button class="market-tab" data-market-tab="mylistings">My Listings</button>
+                        </div>
+
+                        <!-- Browse Tab -->
+                        <div id="market-tab-browse" class="market-tab-content active">
+                            <div class="market-controls">
+                                <div class="market-search">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="market-search" placeholder="Search listings...">
+                                </div>
+                                <div class="market-actions">
+                                    <button id="btn-create-listing" class="btn-accent">
+                                        <i class="fas fa-plus"></i> Create Listing
+                                    </button>
+                                    <button id="btn-refresh-market" class="btn-secondary">
+                                        <i class="fas fa-sync-alt"></i> Refresh
+                                    </button>
+                                </div>
                             </div>
-                            <div class="market-actions">
-                                <button id="btn-create-listing" class="btn-accent">
-                                    <i class="fas fa-plus"></i> Create Listing
-                                </button>
-                                <button id="btn-refresh-market" class="btn-secondary">
-                                    <i class="fas fa-sync-alt"></i> Refresh
-                                </button>
+                            <div class="market-filter">
+                                <select id="market-filter">
+                                    <option value="all">All Items</option>
+                                </select>
+                            </div>
+                            <div class="market-table">
+                                <div class="market-header">
+                                    <span class="col-seller">Seller</span>
+                                    <span class="col-item">Item</span>
+                                    <span class="col-amount">Qty</span>
+                                    <span class="col-price">Price</span>
+                                    <span class="col-action">Action</span>
+                                </div>
+                                <div id="market-listings" class="market-body">
+                                    <div class="market-empty">
+                                        <i class="fas fa-box-open"></i>
+                                        <p>No listings available</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="market-filter">
-                            <select id="market-filter">
-                                <option value="all">All Items</option>
-                            </select>
-                        </div>
-                        <div class="market-table">
-                            <div class="market-header">
-                                <span class="col-seller">Seller</span>
-                                <span class="col-item">Item</span>
-                                <span class="col-amount">Qty</span>
-                                <span class="col-price">Price</span>
-                                <span class="col-action">Action</span>
+
+                        <!-- My Listings Tab -->
+                        <div id="market-tab-mylistings" class="market-tab-content hidden">
+                            <div class="market-controls">
+                                <div class="market-actions">
+                                    <button id="btn-refresh-mylistings" class="btn-secondary">
+                                        <i class="fas fa-sync-alt"></i> Refresh
+                                    </button>
+                                </div>
                             </div>
-                            <div id="market-listings" class="market-body">
-                                <div class="market-empty">
-                                    <i class="fas fa-box-open"></i>
-                                    <p>No listings available</p>
+                            <div class="market-table">
+                                <div class="market-header">
+                                    <span class="col-item">Item</span>
+                                    <span class="col-amount">Qty</span>
+                                    <span class="col-price">Price</span>
+                                    <span class="col-status">Status</span>
+                                    <span class="col-action">Action</span>
+                                </div>
+                                <div id="mylistings-list" class="market-body">
+                                    <div class="market-empty">
+                                        <i class="fas fa-inbox"></i>
+                                        <p>No listings yet</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

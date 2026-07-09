@@ -86,17 +86,22 @@ function BlackMarket.CreatePendingListing(license, username, itemName, itemLabel
 end
 
 function BlackMarket.ActivateListing(listingId)
-    Update(
+    print('[Crime Laptop] Activating listing: ' .. tostring(listingId))
+    local result = Update(
         'UPDATE ' .. Config.Database.listings .. ' SET status = ? WHERE id = ? AND status = ?',
         { 'active', listingId, 'pending' }
     )
+    print('[Crime Laptop] Activate result: ' .. tostring(result))
+    return result
 end
 
 function BlackMarket.GetPendingListing(id)
+    print('[Crime Laptop] GetPendingListing called with id: ' .. tostring(id))
     local result = Query(
         'SELECT * FROM ' .. Config.Database.listings .. ' WHERE id = ? AND status = ?',
         { id, 'pending' }
     )
+    print('[Crime Laptop] GetPendingListing result: ' .. tostring(result and result[1] and 'found' or 'nil'))
     return result and result[1] or nil
 end
 

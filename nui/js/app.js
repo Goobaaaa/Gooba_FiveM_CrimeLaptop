@@ -57,6 +57,10 @@ const App = {
                 this.renderPendingListings(data.listings);
                 break;
 
+            case 'myListingsData':
+                this.renderMyListings(data.listings);
+                break;
+
             case 'showDropbox':
                 document.getElementById('dropbox-modal').classList.remove('hidden');
                 break;
@@ -158,6 +162,24 @@ const App = {
             document.getElementById('dropbox-modal').classList.add('hidden');
             API.closeDropbox();
         });
+
+        document.querySelectorAll('.market-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.market-tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById('market-tab-' + tab.dataset.marketTab).classList.remove('hidden');
+                document.getElementById('market-tab-' + tab.dataset.marketTab).classList.add('active');
+
+                if (tab.dataset.marketTab === 'mylistings') {
+                    this.loadMyListings();
+                }
+            });
+        });
+
+        document.getElementById('btn-refresh-mylistings').addEventListener('click', () => {
+            this.loadMyListings();
+        });
     },
 
     async register() {
@@ -236,6 +258,35 @@ const App = {
         const search = document.getElementById('market-search')?.value || '';
         const filter = document.getElementById('market-filter')?.value || 'all';
         await API.getListings(search, filter);
+    },
+
+    async loadMyListings() {
+        await API.getMyListings();
+    },
+
+    renderMyListings(listings) {
+        const container = document.getElementById('mylistings-list');
+        if (!listings || listings.length === 0) {
+            container.innerHTML = `
+                <div class="market-empty">
+                    <i class="fas fa-inbox"></i>
+                    <p>No listings yet</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = listings.map(listing => `
+            <div class="market-row" data-id="${listing.id}">
+                <span>${escapeHtml(listing.item_label)} (${escapeHtml(listing.item_name)})</span>
+                <span>${listing.amount}</span>
+                <span class="item-price">${listing.price.toLocaleString()} CRM</span>
+                <span><span class="status-badge ${listing.status}">${listing.status}</span></span>
+                <span>
+                    ${listing.status === 'active' ? `<button class="btn-cancel" onclick="App.cancelListing(${listing.id})"><i class="fas fa-times"></i> Cancel</button>` : ''}
+                    ${listing.status === 'pending' ? '<span class="status-badge pending">Go to Dropbox</span>' : ''}
+                </span>
+            </div>
+        `).join('');
     },
 
     async loadCryptoPage() {
@@ -344,6 +395,16 @@ const App = {
             this.refreshProfile();
         } else {
             this.showNotification(result?.message || 'Purchase failed', 'error');
+        }
+    },
+
+    async cancelListing(listingId) {
+        const result = await API.cancelListing(listingId);
+        if (result && result.success) {
+            this.showNotification('Listing cancelled', 'success');
+            this.loadMyListings();
+        } else {
+            this.showNotification(result?.message || 'Failed to cancel listing', 'error');
         }
     },
 

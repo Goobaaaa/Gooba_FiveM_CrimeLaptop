@@ -289,11 +289,13 @@ end)
 
 RegisterNetEvent('crime_laptop:server:depositListing', function(listingId)
     local source = source
+    print('[Crime Laptop] depositListing called by player ' .. source .. ' for listing ' .. tostring(listingId))
     local license = GetPlayerLicense(source)
     if not license then return end
 
     local listing = BlackMarket.GetPendingListing(listingId)
     if not listing then
+        print('[Crime Laptop] No pending listing found for id: ' .. tostring(listingId))
         NotifyClient(source, 'Listing not found or already deposited', 'error')
         return
     end
@@ -308,6 +310,52 @@ RegisterNetEvent('crime_laptop:server:depositListing', function(listingId)
 
     local listings = BlackMarket.GetListings('', 'all')
     TriggerClientEvent('crime_laptop:client:listingsData', source, listings)
+end)
+
+RegisterNetEvent('crime_laptop:server:getMyListings', function()
+    local source = source
+    local license = GetPlayerLicense(source)
+    if not license then return end
+
+    local listings = BlackMarket.GetPlayerListings(license)
+    TriggerClientEvent('crime_laptop:client:myListingsData', source, listings)
+end)
+
+RegisterNetEvent('crime_laptop:server:cancelListing', function(data)
+    local source = source
+    local license = GetPlayerLicense(source)
+    if not license then return end
+
+    local listingId = data.listingId
+    local listing = BlackMarket.GetListing(listingId)
+
+    if not listing then
+        NotifyClient(source, 'Listing not found', 'error')
+        return
+    end
+
+    if listing.seller_license ~= license then
+        NotifyClient(source, 'This is not your listing', 'error')
+        return
+    end
+
+    if listing.status ~= 'active' and listing.status ~= 'pending' then
+        NotifyClient(source, 'Cannot cancel this listing', 'error')
+        return
+    end
+
+    BlackMarket.CancelListing(listingId, license)
+
+    if listing.status == 'pending' then
+        FrameworkGiveItem(source, listing.item_name, listing.amount)
+        NotifyClient(source, 'Listing cancelled. Item returned to inventory.', 'success')
+    else
+        FrameworkGiveItem(source, listing.item_name, listing.amount)
+        NotifyClient(source, 'Listing cancelled. Item returned to inventory.', 'success')
+    end
+
+    local myListings = BlackMarket.GetPlayerListings(license)
+    TriggerClientEvent('crime_laptop:client:myListingsData', source, myListings)
 end)
 
 RegisterNetEvent('crime_laptop:server:buyListing', function(listingId)

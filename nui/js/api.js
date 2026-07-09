@@ -44,6 +44,18 @@ const API = {
         return await this.fetch('buyListing', { id: listingId });
     },
 
+    async getMyListings() {
+        return await this.fetch('getMyListings');
+    },
+
+    async cancelListing(listingId) {
+        return await this.fetch('cancelListing', { listingId });
+    },
+
+    async getPendingListings() {
+        return await this.fetch('getPendingListings');
+    },
+
     async transferCrypto(toUsername, amount) {
         return await this.fetch('transferCrypto', { toUsername, amount });
     },
