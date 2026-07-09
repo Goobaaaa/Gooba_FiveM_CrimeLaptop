@@ -50,6 +50,19 @@ CreateThread(function()
         ADD COLUMN IF NOT EXISTS `status` ENUM('pending', 'active', 'sold', 'cancelled') DEFAULT 'pending'
     ]])
 
+    exports.oxmysql:execute([[
+        ALTER TABLE `crime_laptop_profiles`
+        ADD COLUMN IF NOT EXISTS `crypto` INT DEFAULT 0
+    ]])
+
+    exports.oxmysql:execute([[
+        UPDATE `crime_laptop_profiles` SET `crypto` = `balance` WHERE `crypto` = 0 AND `balance` > 0
+    ]])
+
+    exports.oxmysql:execute([[
+        ALTER TABLE `crime_laptop_profiles` DROP COLUMN IF EXISTS `balance`
+    ]])
+
     DebugPrint('Database tables ready')
 end)
 
