@@ -1,11 +1,19 @@
 BlackMarket = {}
 
 local function Query(sql, params)
-    return exports.oxmysql:execute(sql, params)
+    local p = promise.new()
+    exports.oxmysql:execute(sql, params, function(result)
+        p:resolve(result)
+    end)
+    return Citizen.Await(p)
 end
 
 local function Insert(sql, params)
-    return exports.oxmysql:insert(sql, params)
+    local p = promise.new()
+    exports.oxmysql:insert(sql, params, function(result)
+        p:resolve(result)
+    end)
+    return Citizen.Await(p)
 end
 
 function BlackMarket.GetListings(search, filter)

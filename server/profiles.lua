@@ -1,15 +1,27 @@
 Profiles = {}
 
 local function Query(sql, params)
-    return exports.oxmysql:execute(sql, params)
+    local p = promise.new()
+    exports.oxmysql:execute(sql, params, function(result)
+        p:resolve(result)
+    end)
+    return Citizen.Await(p)
 end
 
 local function Insert(sql, params)
-    return exports.oxmysql:insert(sql, params)
+    local p = promise.new()
+    exports.oxmysql:insert(sql, params, function(result)
+        p:resolve(result)
+    end)
+    return Citizen.Await(p)
 end
 
 local function Update(sql, params)
-    return exports.oxmysql:update(sql, params)
+    local p = promise.new()
+    exports.oxmysql:update(sql, params, function(result)
+        p:resolve(result)
+    end)
+    return Citizen.Await(p)
 end
 
 function Profiles.GetByLicense(license)
@@ -29,36 +41,22 @@ function Profiles.GetByUsername(username)
 end
 
 function Profiles.Create(license, username)
-    print('[Crime Laptop] Profiles.Create called: ' .. license .. ' / ' .. username)
-
     local existingByLicense = Profiles.GetByLicense(license)
     if existingByLicense then
-        print('[Crime Laptop] License already exists, returning existing profile')
         return existingByLicense
     end
-    print('[Crime Laptop] No existing profile for this license')
 
     local existingByUsername = Profiles.GetByUsername(username)
     if existingByUsername then
-        print('[Crime Laptop] Username already taken')
         return nil, 'Alias already taken'
     end
-    print('[Crime Laptop] Username is available')
 
-    print('[Crime Laptop] Inserting new profile...')
-    local insertOk, insertErr = pcall(function()
-        Insert(
-            'INSERT INTO ' .. Config.Database.profiles .. ' (license, username, balance) VALUES (?, ?, ?)',
-            { license, username, 0 }
-        )
-    end)
-    print('[Crime Laptop] Insert result: ok=' .. tostring(insertOk) .. ' err=' .. tostring(insertErr))
+    Insert(
+        'INSERT INTO ' .. Config.Database.profiles .. ' (license, username, balance) VALUES (?, ?, ?)',
+        { license, username, 0 }
+    )
 
-    print('[Crime Laptop] Fetching newly created profile...')
-    local profile = Profiles.GetByLicense(license)
-    print('[Crime Laptop] Profile fetch result: ' .. tostring(profile))
-
-    return profile
+    return Profiles.GetByLicense(license)
 end
 
 function Profiles.UpdateUsername(license, newUsername)
