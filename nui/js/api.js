@@ -28,8 +28,16 @@ const API = {
         return await this.fetch('getListings', { search, filter });
     },
 
+    async getInventory() {
+        return await this.fetch('getInventory');
+    },
+
     async createListing(data) {
         return await this.fetch('createListing', data);
+    },
+
+    async depositListing(listingId) {
+        return await this.fetch('depositListing', { listingId });
     },
 
     async buyListing(listingId) {
@@ -50,5 +58,9 @@ const API = {
 
     async close() {
         return await this.fetch('close');
+    },
+
+    async closeDropbox() {
+        return await this.fetch('closeDropbox');
     }
 };

@@ -17,6 +17,46 @@ Config.BlackMarket = {
     RefreshCooldown = 30
 }
 
+Config.SecureDropbox = {
+    ShowBlips = true,
+    BlipSprite = 134,
+    BlipColor = 1,
+    BlipScale = 0.8,
+    InteractionDistance = 2.0,
+    Locations = {
+        {
+            name = 'Downtown Newspaper Box',
+            coords = vector3(235.03, -815.49, 30.72),
+            heading = 70.0,
+            model = 'prop_newsbox_01a'
+        },
+        {
+            name = 'Vinewood News Stand',
+            coords = vector3(291.18, 180.46, 104.47),
+            heading = 340.0,
+            model = 'prop_newsbox_01a'
+        },
+        {
+            name = 'Paleto Bay Mailbox',
+            coords = vector3(-282.07, 6120.86, 31.97),
+            heading = 315.0,
+            model = 'prop_postbox_01a'
+        },
+        {
+            name = 'Sandy Shores Drop Point',
+            coords = vector3(1701.31, 3773.55, 34.44),
+            heading = 200.0,
+            model = 'prop_postbox_01a'
+        },
+        {
+            name = 'Mirror Park Utility Box',
+            coords = vector3(1182.52, -333.37, 69.18),
+            heading = 90.0,
+            model = 'prop_elecbox_03a'
+        }
+    }
+}
+
 Config.UI = {
     Theme = {
         primary = '#8b2fc9',

@@ -154,6 +154,82 @@ RegisterNetEvent('crime_laptop:server:getListings', function(search, filter)
     TriggerClientEvent('crime_laptop:client:listingsData', source, listings)
 end)
 
+RegisterNetEvent('crime_laptop:server:getPendingListings', function()
+    local source = source
+    local license = GetPlayerLicense(source)
+    if not license then return end
+
+    local listings = BlackMarket.GetPlayerListings(license)
+    local pending = {}
+    for _, listing in ipairs(listings) do
+        if listing.status == 'pending' then
+            pending[#pending + 1] = listing
+        end
+    end
+    TriggerClientEvent('crime_laptop:client:pendingListings', source, pending)
+end)
+
+RegisterNetEvent('crime_laptop:server:getInventory', function()
+    local source = source
+    local items = {}
+
+    if FrameworkName == 'ox_inventory' then
+        local inventory = exports.oxinventory:GetInventory(source, false)
+        if inventory and inventory.items then
+            for _, item in pairs(inventory.items) do
+                if item.count > 0 and not item.weapon then
+                    items[#items + 1] = {
+                        name = item.name,
+                        label = item.label or item.name,
+                        count = item.count
+                    }
+                end
+            end
+        end
+    elseif FrameworkName == 'qbox' then
+        local player = exports['qbx_core']:GetPlayer(source)
+        if player then
+            for _, item in pairs(player.PlayerData.items) do
+                if item.amount > 0 then
+                    items[#items + 1] = {
+                        name = item.name,
+                        label = item.label or item.name,
+                        count = item.amount
+                    }
+                end
+            end
+        end
+    elseif FrameworkName == 'qb-core' then
+        local player = Framework.Functions.GetPlayer(source)
+        if player then
+            for _, item in pairs(player.PlayerData.items) do
+                if item.amount > 0 then
+                    items[#items + 1] = {
+                        name = item.name,
+                        label = item.label or item.name,
+                        count = item.amount
+                    }
+                end
+            end
+        end
+    elseif FrameworkName == 'esx' then
+        local player = Framework.GetPlayerFromId(source)
+        if player then
+            for _, item in pairs(player.getInventory()) do
+                if item.count > 0 then
+                    items[#items + 1] = {
+                        name = item.name,
+                        label = item.label or item.name,
+                        count = item.count
+                    }
+                end
+            end
+        end
+    end
+
+    TriggerClientEvent('crime_laptop:client:inventoryData', source, items)
+end)
+
 RegisterNetEvent('crime_laptop:server:createListing', function(data)
     local source = source
     local license = GetPlayerLicense(source)
@@ -181,7 +257,7 @@ RegisterNetEvent('crime_laptop:server:createListing', function(data)
     end
 
     if price < Config.BlackMarket.MinPrice then
-        NotifyClient(source, 'Minimum price is $' .. Config.BlackMarket.MinPrice, 'error')
+        NotifyClient(source, 'Minimum price is ' .. Config.BlackMarket.MinPrice .. ' CRM', 'error')
         return
     end
 
@@ -193,19 +269,40 @@ RegisterNetEvent('crime_laptop:server:createListing', function(data)
 
     local removed = FrameworkRemoveItem(source, itemName, amount)
     if not removed then
-        NotifyClient(source, 'Failed to remove item', 'error')
+        NotifyClient(source, 'Failed to remove item from inventory', 'error')
         return
     end
 
-    local success, err = BlackMarket.CreateListing(license, profile.username, itemName, itemLabel, amount, price)
+    local success, err = BlackMarket.CreatePendingListing(license, profile.username, itemName, itemLabel, amount, price)
     if success then
-        NotifyClient(source, 'Listing created', 'success')
-        local listings = BlackMarket.GetListings('', 'all')
-        TriggerClientEvent('crime_laptop:client:listingsData', source, listings)
+        NotifyClient(source, 'Listing created. Go to a Secure Dropbox to deposit the item.', 'success')
     else
         FrameworkGiveItem(source, itemName, amount)
         NotifyClient(source, err or 'Failed to create listing', 'error')
     end
+end)
+
+RegisterNetEvent('crime_laptop:server:depositListing', function(listingId)
+    local source = source
+    local license = GetPlayerLicense(source)
+    if not license then return end
+
+    local listing = BlackMarket.GetPendingListing(listingId)
+    if not listing then
+        NotifyClient(source, 'Listing not found or already deposited', 'error')
+        return
+    end
+
+    if listing.seller_license ~= license then
+        NotifyClient(source, 'This is not your listing', 'error')
+        return
+    end
+
+    BlackMarket.ActivateListing(listingId)
+    NotifyClient(source, 'Item deposited! Listing is now active on the Black Market.', 'success')
+
+    local listings = BlackMarket.GetListings('', 'all')
+    TriggerClientEvent('crime_laptop:client:listingsData', source, listings)
 end)
 
 RegisterNetEvent('crime_laptop:server:buyListing', function(listingId)

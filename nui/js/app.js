@@ -49,6 +49,18 @@ const App = {
                 Pages.populateFilter(data.listings || []);
                 break;
 
+            case 'inventoryData':
+                this.renderInventoryDropdown(data.items);
+                break;
+
+            case 'pendingListings':
+                this.renderPendingListings(data.listings);
+                break;
+
+            case 'showDropbox':
+                document.getElementById('dropbox-modal').classList.remove('hidden');
+                break;
+
             case 'cryptoHistory':
                 Pages.renderCryptoHistory(data.history);
                 break;
@@ -88,6 +100,7 @@ const App = {
 
         document.getElementById('btn-create-listing').addEventListener('click', () => {
             document.getElementById('create-listing-modal').classList.remove('hidden');
+            API.getInventory();
         });
 
         document.getElementById('close-modal').addEventListener('click', () => {
@@ -96,6 +109,13 @@ const App = {
 
         document.getElementById('submit-listing').addEventListener('click', () => {
             this.submitListing();
+        });
+
+        document.getElementById('listing-item-select').addEventListener('change', (e) => {
+            const option = e.target.selectedOptions[0];
+            const max = option ? parseInt(option.dataset.count) || 0 : 0;
+            document.getElementById('listing-max-amount').textContent = max;
+            document.getElementById('listing-amount').max = max;
         });
 
         document.getElementById('btn-change-alias').addEventListener('click', () => {
@@ -132,6 +152,11 @@ const App = {
 
         document.getElementById('btn-refresh-crypto').addEventListener('click', () => {
             this.loadCryptoPage();
+        });
+
+        document.getElementById('close-dropbox-modal').addEventListener('click', () => {
+            document.getElementById('dropbox-modal').classList.add('hidden');
+            API.closeDropbox();
         });
     },
 
@@ -221,14 +246,63 @@ const App = {
         await API.getCryptoGraph();
     },
 
+    renderInventoryDropdown(items) {
+        const select = document.getElementById('listing-item-select');
+        select.innerHTML = '<option value="">Select an item...</option>';
+        if (!items || items.length === 0) {
+            select.innerHTML = '<option value="">No items in inventory</option>';
+            return;
+        }
+        items.forEach(item => {
+            select.innerHTML += `<option value="${item.name}" data-label="${item.label}" data-count="${item.count}">${item.label} (${item.count})</option>`;
+        });
+    },
+
+    renderPendingListings(listings) {
+        const container = document.getElementById('pending-listings-list');
+        if (!listings || listings.length === 0) {
+            container.innerHTML = `
+                <div class="market-empty">
+                    <i class="fas fa-inbox"></i>
+                    <p>No pending listings</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = listings.map(listing => `
+            <div class="pending-item">
+                <div class="pending-item-info">
+                    <span class="pending-item-name">${escapeHtml(listing.item_label)}</span>
+                    <span class="pending-item-details">x${listing.amount} - ${listing.price} CRM</span>
+                </div>
+                <button class="btn-deposit" onclick="App.depositListing(${listing.id})">
+                    <i class="fas fa-upload"></i> Deposit
+                </button>
+            </div>
+        `).join('');
+    },
+
     async submitListing() {
-        const itemName = document.getElementById('listing-item-name').value.trim();
-        const itemLabel = document.getElementById('listing-item-label').value.trim();
+        const select = document.getElementById('listing-item-select');
+        const selectedOption = select.selectedOptions[0];
+        const itemName = select.value;
+        const itemLabel = selectedOption ? selectedOption.dataset.label : '';
+        const maxAmount = parseInt(selectedOption ? selectedOption.dataset.count : 0) || 0;
         const amount = parseInt(document.getElementById('listing-amount').value) || 1;
         const price = parseInt(document.getElementById('listing-price').value) || 0;
 
-        if (!itemName || !itemLabel || !price) {
-            this.showNotification('Please fill in all fields', 'error');
+        if (!itemName) {
+            this.showNotification('Please select an item from your inventory', 'error');
+            return;
+        }
+
+        if (amount < 1) {
+            this.showNotification('Amount must be at least 1', 'error');
+            return;
+        }
+
+        if (amount > maxAmount) {
+            this.showNotification('You only have ' + maxAmount + ' of this item', 'error');
             return;
         }
 
@@ -241,14 +315,23 @@ const App = {
 
         if (result && result.success) {
             document.getElementById('create-listing-modal').classList.add('hidden');
-            document.getElementById('listing-item-name').value = '';
-            document.getElementById('listing-item-label').value = '';
             document.getElementById('listing-amount').value = '1';
             document.getElementById('listing-price').value = '';
-            this.showNotification('Listing created successfully', 'success');
-            this.loadListings();
+            select.innerHTML = '<option value="">Select an item...</option>';
+            this.showNotification('Listing created. Visit a Secure Dropbox to deposit.', 'success');
         } else {
             this.showNotification(result?.message || 'Failed to create listing', 'error');
+        }
+    },
+
+    async depositListing(listingId) {
+        const result = await API.depositListing(listingId);
+        if (result && result.success) {
+            this.showNotification('Item deposited successfully', 'success');
+            document.getElementById('dropbox-modal').classList.add('hidden');
+            API.closeDropbox();
+        } else {
+            this.showNotification(result?.message || 'Failed to deposit item', 'error');
         }
     },
 

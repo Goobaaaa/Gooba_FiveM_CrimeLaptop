@@ -17,9 +17,11 @@ CREATE TABLE IF NOT EXISTS `crime_laptop_listings` (
     `item_label` VARCHAR(100) NOT NULL,
     `amount` INT NOT NULL DEFAULT 1,
     `price` INT NOT NULL,
+    `status` ENUM('pending', 'active', 'sold', 'cancelled') DEFAULT 'pending',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX `idx_seller` (`seller_license`),
-    INDEX `idx_item` (`item_name`)
+    INDEX `idx_item` (`item_name`),
+    INDEX `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `crime_laptop_crypto_history` (
