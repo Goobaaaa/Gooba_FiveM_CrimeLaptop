@@ -899,6 +899,7 @@ input:focus, select:focus {
 .crypto-graph-container canvas {
     width: 100%;
     height: 200px;
+    display: block;
 }
 
 .crypto-history-list {

@@ -62,6 +62,11 @@ const Pages = {
     renderCryptoGraph(history) {
         const canvas = document.getElementById('crypto-graph');
         if (!canvas) return;
+
+        const container = canvas.parentElement;
+        canvas.width = container.clientWidth;
+        canvas.height = 200;
+
         const ctx = canvas.getContext('2d');
         const width = canvas.width;
         const height = canvas.height;
@@ -72,6 +77,7 @@ const Pages = {
             ctx.fillStyle = '#888';
             ctx.font = '14px Segoe UI';
             ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             ctx.fillText('No data yet', width / 2, height / 2);
             return;
         }
