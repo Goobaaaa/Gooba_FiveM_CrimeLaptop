@@ -60,7 +60,7 @@ function BlackMarket.GetPlayerListings(license)
 end
 
 function BlackMarket.CreatePendingListing(license, username, itemName, itemLabel, amount, price)
-    if not itemName or not itemLabel or not price or price < Config.BlackMarket.MinPrice then
+    if not itemName or not itemLabel or not price or price < 1 then
         return false, 'Invalid listing data'
     end
 

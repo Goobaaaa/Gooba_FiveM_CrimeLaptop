@@ -256,8 +256,8 @@ RegisterNetEvent('crime_laptop:server:createListing', function(data)
         return
     end
 
-    if price < Config.BlackMarket.MinPrice then
-        NotifyClient(source, 'Minimum price is ' .. Config.BlackMarket.MinPrice .. ' CRM', 'error')
+    if price < 1 then
+        NotifyClient(source, 'Price must be at least 1 CRM', 'error')
         return
     end
 

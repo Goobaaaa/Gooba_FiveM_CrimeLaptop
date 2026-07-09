@@ -306,8 +306,8 @@ const App = {
             return;
         }
 
-        if (price < 100) {
-            this.showNotification('Minimum price is 100 CRM', 'error');
+        if (price < 1) {
+            this.showNotification('Price must be at least 1 CRM', 'error');
             return;
         }
 
