@@ -174,7 +174,7 @@ RegisterNetEvent('crime_laptop:server:getInventory', function()
     local items = {}
 
     if FrameworkName == 'ox_inventory' then
-        local inventory = exports.oxinventory:GetInventory(source, false)
+        local inventory = exports['ox_inventory']:GetInventory(source, false)
         if inventory and inventory.items then
             for _, item in pairs(inventory.items) do
                 if item.count > 0 and not item.weapon then
