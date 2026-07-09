@@ -29,22 +29,36 @@ function Profiles.GetByUsername(username)
 end
 
 function Profiles.Create(license, username)
+    print('[Crime Laptop] Profiles.Create called: ' .. license .. ' / ' .. username)
+
     local existingByLicense = Profiles.GetByLicense(license)
     if existingByLicense then
+        print('[Crime Laptop] License already exists, returning existing profile')
         return existingByLicense
     end
+    print('[Crime Laptop] No existing profile for this license')
 
     local existingByUsername = Profiles.GetByUsername(username)
     if existingByUsername then
+        print('[Crime Laptop] Username already taken')
         return nil, 'Alias already taken'
     end
+    print('[Crime Laptop] Username is available')
 
-    Insert(
-        'INSERT INTO ' .. Config.Database.profiles .. ' (license, username, balance) VALUES (?, ?, ?)',
-        { license, username, 0 }
-    )
+    print('[Crime Laptop] Inserting new profile...')
+    local insertOk, insertErr = pcall(function()
+        Insert(
+            'INSERT INTO ' .. Config.Database.profiles .. ' (license, username, balance) VALUES (?, ?, ?)',
+            { license, username, 0 }
+        )
+    end)
+    print('[Crime Laptop] Insert result: ok=' .. tostring(insertOk) .. ' err=' .. tostring(insertErr))
 
-    return Profiles.GetByLicense(license)
+    print('[Crime Laptop] Fetching newly created profile...')
+    local profile = Profiles.GetByLicense(license)
+    print('[Crime Laptop] Profile fetch result: ' .. tostring(profile))
+
+    return profile
 end
 
 function Profiles.UpdateUsername(license, newUsername)
