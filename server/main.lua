@@ -71,23 +71,39 @@ end)
 
 RegisterNetEvent('crime_laptop:server:register', function(username)
     local source = source
+    print('[Crime Laptop] Register called by player ' .. source .. ' with username: ' .. tostring(username))
     local license = GetPlayerLicense(source)
     if not license then
+        print('[Crime Laptop] No license found for player ' .. source)
         NotifyClient(source, 'License not found', 'error')
         return
     end
+    print('[Crime Laptop] License: ' .. license)
 
     if not username or #username < 3 or #username > 20 then
+        print('[Crime Laptop] Invalid username length')
         NotifyClient(source, 'Alias must be 3-20 characters', 'error')
         return
     end
 
-    local profile, err = Profiles.Create(license, username)
+    print('[Crime Laptop] Calling Profiles.Create...')
+    local success, profileErr = pcall(function()
+        return Profiles.Create(license, username)
+    end)
+
+    if not success then
+        print('[Crime Laptop] Profiles.Create ERROR: ' .. tostring(profileErr))
+        NotifyClient(source, 'Database error: ' .. tostring(profileErr), 'error')
+        return
+    end
+
+    local profile = profileErr
     if profile then
-        DebugPrint('Player ' .. source .. ' registered as: ' .. username)
+        print('[Crime Laptop] Player ' .. source .. ' registered as: ' .. username)
         TriggerClientEvent('crime_laptop:client:openLaptop', source, true, profile)
     else
-        NotifyClient(source, err or 'Registration failed', 'error')
+        print('[Crime Laptop] Profile is nil after create')
+        NotifyClient(source, 'Registration failed', 'error')
     end
 end)
 
