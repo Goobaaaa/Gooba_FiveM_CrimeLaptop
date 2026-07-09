@@ -49,24 +49,9 @@ local function NotifyClient(source, message, msgType)
     TriggerClientEvent('crime_laptop:client:notify', source, message, msgType or 'info')
 end
 
-local function RegisterUsableItem()
-    if GetResourceState('ox_inventory') == 'started' then
-        exports['ox_inventory']:RegisterUsableItem(Config.Item, function(data)
-            local source = data.source
-            local profile = GetProfile(source)
-            if profile then
-                TriggerClientEvent('crime_laptop:client:openLaptop', source, true, profile)
-            else
-                TriggerClientEvent('crime_laptop:client:openLaptop', source, false, nil)
-            end
-        end)
-        DebugPrint('Registered usable item: ' .. Config.Item)
-    end
-end
-
 AddEventHandler('onResourceStart', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
-    RegisterUsableItem()
+    DebugPrint('Crime Laptop resource started on server')
 end)
 
 RegisterNetEvent('crime_laptop:server:requestOpen', function()
