@@ -279,18 +279,27 @@ const App = {
             return;
         }
 
-        container.innerHTML = listings.map(listing => `
-            <div class="market-row" data-id="${listing.id}">
-                <span>${escapeHtml(listing.item_label)} (${escapeHtml(listing.item_name)})</span>
-                <span>${listing.amount}</span>
-                <span class="item-price">${listing.price.toLocaleString()} CRM</span>
-                <span><span class="status-badge ${listing.status}">${listing.status}</span></span>
-                <span>
-                    ${listing.status === 'active' ? `<button class="btn-cancel" onclick="App.cancelListing(${listing.id})"><i class="fas fa-times"></i> Cancel</button>` : ''}
-                    ${listing.status === 'pending' ? '<span class="status-badge pending">Go to Dropbox</span>' : ''}
-                </span>
-            </div>
-        `).join('');
+        container.innerHTML = listings.map(listing => {
+            let actionHtml = '';
+            if (listing.status === 'active') {
+                actionHtml = `<button class="btn-cancel" onclick="App.cancelListing(${listing.id})"><i class="fas fa-times"></i> Cancel</button>`;
+            } else if (listing.status === 'pending') {
+                actionHtml = `<button class="btn-cancel" onclick="App.cancelListing(${listing.id})"><i class="fas fa-times"></i> Cancel</button>`;
+            } else if (listing.status === 'sold') {
+                actionHtml = '<span class="status-badge sold">Completed</span>';
+            } else if (listing.status === 'cancelled') {
+                actionHtml = '<span class="status-badge cancelled">Cancelled</span>';
+            }
+
+            return `
+                <div class="market-row" data-id="${listing.id}">
+                    <span>${escapeHtml(listing.item_label)} (${escapeHtml(listing.item_name)})</span>
+                    <span>${listing.amount}</span>
+                    <span class="item-price">${listing.price.toLocaleString()} CRM</span>
+                    <span><span class="status-badge ${listing.status}">${listing.status}</span></span>
+                    <span>${actionHtml}</span>
+                </div>`;
+        }).join('');
     },
 
     async loadCryptoPage() {

@@ -376,11 +376,12 @@ RegisterNetEvent('crime_laptop:server:cancelListing', function(data)
 
     BlackMarket.CancelListing(listingId, license)
 
+    FrameworkGiveItem(source, listing.item_name, listing.amount)
+
     if listing.status == 'pending' then
-        FrameworkGiveItem(source, listing.item_name, listing.amount)
+        TriggerClientEvent('crime_laptop:client:clearDropoff', source)
         NotifyClient(source, 'Listing cancelled. Item returned to inventory.', 'success')
     else
-        FrameworkGiveItem(source, listing.item_name, listing.amount)
         NotifyClient(source, 'Listing cancelled. Item returned to inventory.', 'success')
     end
 
