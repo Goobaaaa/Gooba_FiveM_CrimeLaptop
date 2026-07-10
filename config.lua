@@ -28,26 +28,6 @@ Config.DropoffLocations = {
         name = 'Vinewood Tattoo Parlor',
         coords = vector3(309.7, 170.69, 102.92),
         heading = 159.92
-    },
-    {
-        name = 'Davis Laundry',
-        coords = vector3(149.63, -203.52, 54.14),
-        heading = 340.0
-    },
-    {
-        name = 'Rockford Hills Newsstand',
-        coords = vector3(-584.22, -1622.57, 27.01),
-        heading = 170.0
-    },
-    {
-        name = 'Vespucci Beach Bench',
-        coords = vector3(-1234.56, -1682.34, 4.17),
-        heading = 310.0
-    },
-    {
-        name = 'Grove Street Dumpster',
-        coords = vector3(63.33, -1906.22, 21.07),
-        heading = 225.0
     }
 }
 
@@ -56,7 +36,7 @@ Config.SecureDropbox = {
     BlipSprite = 134,
     BlipColor = 1,
     BlipScale = 0.8,
-    InteractionDistance = 2.0,
+    InteractionDistance = 4.0,
     Locations = {
         {
             name = 'Downtown Newspaper Box',
