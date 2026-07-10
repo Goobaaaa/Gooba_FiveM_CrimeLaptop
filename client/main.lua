@@ -95,6 +95,21 @@ local function SetDropoffBlip(location)
     dropoffBlip = blip
     dropoffRadiusBlip = radiusBlip
     activeDropoff = location
+
+    CreateThread(function()
+        while activeDropoff do
+            Wait(0)
+            DrawMarker(
+                1,
+                activeDropoff.coords.x, activeDropoff.coords.y, activeDropoff.coords.z - 0.95,
+                0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0,
+                3.0, 3.0, 0.5,
+                255, 100, 100, 100,
+                false, false, 2, false, nil, nil, false
+            )
+        end
+    end)
 end
 
 local function GetNearestDropbox()

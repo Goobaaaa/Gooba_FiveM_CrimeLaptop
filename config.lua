@@ -26,8 +26,8 @@ Config.DropoffAnimation = {
 Config.DropoffLocations = {
     {
         name = 'Vinewood Tattoo Parlor',
-        coords = vector3(309.60, 170.59, 103.92),
-        heading = 161.6
+        coords = vector3(309.69, 170.70, 103.92),
+        heading = 159.4
     }
 }
 
