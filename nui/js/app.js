@@ -304,7 +304,7 @@ const App = {
 
             return `
                 <div class="market-row" data-id="${listing.id}">
-                    <span>${escapeHtml(listing.item_label)} (${escapeHtml(listing.item_name)})</span>
+                    <span>${escapeHtml(listing.item_label)}</span>
                     <span>${listing.amount}</span>
                     <span class="item-price">${listing.price.toLocaleString()} CRM</span>
                     <span><span class="status-badge ${listing.status}">${listing.status}</span></span>
