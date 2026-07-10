@@ -376,4 +376,13 @@ RegisterCommand('laptop', function()
     OpenLaptop()
 end, false)
 
+RegisterCommand('mycoords', function()
+    local ped = PlayerPedId()
+    local coords = GetEntityCoords(ped)
+    local heading = GetEntityHeading(ped)
+    local msg = string.format('vector3(%.2f, %.2f, %.2f) heading %.1f', coords.x, coords.y, coords.z, heading)
+    print('[Coords] ' .. msg)
+    TriggerEvent('chat:addMessage', { args = { 'Coords', msg } })
+end, false)
+
 exports('OpenLaptop', OpenLaptop)
