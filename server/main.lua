@@ -280,7 +280,10 @@ RegisterNetEvent('crime_laptop:server:createListing', function(data)
 
     local success, err = BlackMarket.CreatePendingListing(license, profile.username, itemName, itemLabel, amount, price)
     if success then
-        NotifyClient(source, 'Listing created. Go to a Secure Dropbox to deposit the item.', 'success')
+        local dropoffIndex = math.random(#Config.DropoffLocations)
+        local dropoff = Config.DropoffLocations[dropoffIndex]
+        TriggerClientEvent('crime_laptop:client:setDropoff', source, dropoff)
+        NotifyClient(source, 'Listing created! Go to ' .. dropoff.name .. ' to deposit the item.', 'success')
     else
         FrameworkGiveItem(source, itemName, amount)
         NotifyClient(source, err or 'Failed to create listing', 'error')
@@ -310,6 +313,33 @@ RegisterNetEvent('crime_laptop:server:depositListing', function(listingId)
 
     local listings = BlackMarket.GetListings('', 'all')
     TriggerClientEvent('crime_laptop:client:listingsData', source, listings)
+end)
+
+RegisterNetEvent('crime_laptop:server:depositAtDropoff', function()
+    local source = source
+    local license = GetPlayerLicense(source)
+    if not license then return end
+
+    local pendingListings = BlackMarket.GetPlayerListings(license)
+    local deposited = false
+
+    for _, listing in ipairs(pendingListings) do
+        if listing.status == 'pending' then
+            BlackMarket.ActivateListing(listing.id)
+            deposited = true
+            break
+        end
+    end
+
+    if deposited then
+        NotifyClient(source, 'Item deposited! Listing is now active on the Black Market.', 'success')
+        TriggerClientEvent('crime_laptop:client:clearDropoff', source)
+    else
+        NotifyClient(source, 'No pending listings to deposit', 'error')
+    end
+
+    local myListings = BlackMarket.GetPlayerListings(license)
+    TriggerClientEvent('crime_laptop:client:myListingsData', source, myListings)
 end)
 
 RegisterNetEvent('crime_laptop:server:getMyListings', function()

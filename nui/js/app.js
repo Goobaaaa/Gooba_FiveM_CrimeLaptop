@@ -57,6 +57,10 @@ const App = {
                 this.renderPendingListings(data.listings);
                 break;
 
+            case 'setDropoff':
+                this.showNotification('Go to ' + data.location.name + ' to deposit your item', 'info');
+                break;
+
             case 'myListingsData':
                 this.renderMyListings(data.listings);
                 break;

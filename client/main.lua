@@ -1,7 +1,9 @@
 local isLaptopOpen = false
 local dropboxBlips = {}
-local nearestDropbox = nil
+local dropoffBlip = nil
 local pendingListings = {}
+local activeDropoff = nil
+local isDepositing = false
 
 local function OpenLaptop()
     if isLaptopOpen then return end
@@ -58,6 +60,31 @@ local function RemoveDropboxBlips()
     dropboxBlips = {}
 end
 
+local function ClearDropoffBlip()
+    if dropoffBlip and DoesBlipExist(dropoffBlip) then
+        RemoveBlip(dropoffBlip)
+    end
+    dropoffBlip = nil
+    activeDropoff = nil
+end
+
+local function SetDropoffBlip(location)
+    ClearDropoffBlip()
+
+    local blip = AddBlipForCoord(location.coords.x, location.coords.y, location.coords.z)
+    SetBlipSprite(blip, 1)
+    SetBlipDisplay(blip, 4)
+    SetBlipScale(blip, 1.2)
+    SetBlipColour(blip, 5)
+    SetBlipFlashes(blip, true)
+    BeginTextCommandSetBlipName('STRING')
+    AddTextComponentString('Drop-off: ' .. location.name)
+    EndTextCommandSetBlipName(blip)
+
+    dropoffBlip = blip
+    activeDropoff = location
+end
+
 local function GetNearestDropbox()
     local playerCoords = GetEntityCoords(PlayerPedId())
     local closestDist = Config.SecureDropbox.InteractionDistance + 1.0
@@ -74,34 +101,36 @@ local function GetNearestDropbox()
     return closestLoc, closestDist
 end
 
-CreateThread(function()
-    CreateDropboxBlips()
+local function GetNearestDropoff()
+    if not activeDropoff then return nil, 999 end
+    local playerCoords = GetEntityCoords(PlayerPedId())
+    local dist = #(playerCoords - activeDropoff.coords)
+    return activeDropoff, dist
+end
 
-    while true do
-        Wait(500)
-        local playerCoords = GetEntityCoords(PlayerPedId())
-        local nearAny = false
+local function PlayDropoffAnimation(ped, cb)
+    isDepositing = true
+    FreezeEntityPosition(ped, true)
 
-        for _, loc in ipairs(Config.SecureDropbox.Locations) do
-            local dist = #(playerCoords - loc.coords)
-            if dist < 20.0 then
-                nearAny = true
-                break
-            end
-        end
+    local dict = Config.DropoffAnimation.dict
+    local anim = Config.DropoffAnimation.name
 
-        if nearAny then
-            Wait(0)
-            local loc, dist = GetNearestDropbox()
-            if loc and dist < Config.SecureDropbox.InteractionDistance then
-                DrawText3D(loc.coords.x, loc.coords.y, loc.coords.z + 1.0, '~r~[E]~w~ Use Secure Dropbox')
-                if IsControlJustReleased(0, 38) then
-                    OpenDropboxUI()
-                end
-            end
-        end
+    RequestAnimDict(dict)
+    while not HasAnimDictLoaded(dict) do
+        Wait(10)
     end
-end)
+
+    TaskPlayAnim(ped, dict, anim, 8.0, -8.0, Config.DropoffAnimation.duration, 0, 0, false, false, false)
+
+    Wait(Config.DropoffAnimation.duration)
+
+    ClearPedTasks(ped)
+    RemoveAnimDict(dict)
+    FreezeEntityPosition(ped, false)
+    isDepositing = false
+
+    if cb then cb() end
+end
 
 function DrawText3D(x, y, z, text)
     SetTextScale(0.35, 0.35)
@@ -124,6 +153,63 @@ function OpenDropboxUI()
         SetNuiFocus(true, true)
     end)
 end
+
+CreateThread(function()
+    CreateDropboxBlips()
+
+    while true do
+        Wait(500)
+        if isDepositing then
+            Wait(500)
+        else
+            local playerCoords = GetEntityCoords(PlayerPedId())
+
+            if activeDropoff then
+                local dist = #(playerCoords - activeDropoff.coords)
+                if dist < 10.0 then
+                    Wait(0)
+                    if dist < Config.SecureDropbox.InteractionDistance then
+                        DrawText3D(activeDropoff.coords.x, activeDropoff.coords.y, activeDropoff.coords.z + 1.0, '~r~[E]~w~ Deposit Listing')
+                        if IsControlJustReleased(0, 38) then
+                            local ped = PlayerPedId()
+                            PlayDropoffAnimation(ped, function()
+                                TriggerServerEvent('crime_laptop:server:depositAtDropoff')
+                            end)
+                        end
+                    end
+                end
+            end
+
+            local nearAny = false
+            for _, loc in ipairs(Config.SecureDropbox.Locations) do
+                local dist = #(playerCoords - loc.coords)
+                if dist < 20.0 then
+                    nearAny = true
+                    break
+                end
+            end
+
+            if nearAny then
+                Wait(0)
+                local loc, dist = GetNearestDropbox()
+                if loc and dist < Config.SecureDropbox.InteractionDistance then
+                    DrawText3D(loc.coords.x, loc.coords.y, loc.coords.z + 1.0, '~r~[E]~w~ Use Secure Dropbox')
+                    if IsControlJustReleased(0, 38) then
+                        OpenDropboxUI()
+                    end
+                end
+            end
+        end
+    end
+end)
+
+RegisterNetEvent('crime_laptop:client:setDropoff', function(location)
+    SetDropoffBlip(location)
+end)
+
+RegisterNetEvent('crime_laptop:client:clearDropoff', function()
+    ClearDropoffBlip()
+end)
 
 RegisterNetEvent('crime_laptop:client:pendingListings', function(listings)
     pendingListings = listings or {}
