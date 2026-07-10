@@ -537,15 +537,29 @@ RegisterNetEvent('crime_laptop:server:getCryptoGraph', function()
 end)
 
 RegisterCommand('resetprofile', function(source, args, rawCommand)
-    local targetId = tonumber(args[1]) or source
-    local license = GetPlayerLicense(targetId)
-    if not license then
-        print('[Crime Laptop] No license found for player ' .. targetId)
+    if source ~= 0 then
+        print('[Crime Laptop] This command can only be run from the server console')
         return
     end
+
+    local targetId = tonumber(args[1])
+    if not targetId then
+        print('[Crime Laptop] Usage: resetprofile <playerServerId>')
+        print('[Crime Laptop] This will delete the player\'s profile, listings, and crypto history')
+        return
+    end
+
+    local license = GetPlayerLicense(targetId)
+    if not license then
+        print('[Crime Laptop] No license found for player ' .. targetId .. ' (player may be offline)')
+        return
+    end
+
+    print('[Crime Laptop] Resetting profile for player ' .. targetId .. ' (license: ' .. license .. ')')
 
     exports.oxmysql:execute('DELETE FROM ' .. Config.Database.profiles .. ' WHERE license = ?', { license })
     exports.oxmysql:execute('DELETE FROM ' .. Config.Database.listings .. ' WHERE seller_license = ?', { license })
     exports.oxmysql:execute('DELETE FROM ' .. Config.Database.crypto_history .. ' WHERE license = ?', { license })
-    print('[Crime Laptop] Reset profile for player ' .. targetId .. ' (license: ' .. license .. ')')
+
+    print('[Crime Laptop] Profile reset complete for player ' .. targetId)
 end, false)
