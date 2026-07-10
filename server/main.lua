@@ -290,7 +290,7 @@ RegisterNetEvent('crime_laptop:server:createListing', function(data)
         local dropoffIndex = math.random(#Config.DropoffLocations)
         local dropoff = Config.DropoffLocations[dropoffIndex]
         TriggerClientEvent('crime_laptop:client:setDropoff', source, dropoff)
-        NotifyClient(source, 'Listing created! Go to ' .. dropoff.name .. ' to drop off your item.', 'success')
+        NotifyClient(source, 'Listing created! Go to ' .. dropoff.name .. ' to deposit your item.', 'success')
     else
         NotifyClient(source, err or 'Failed to create listing', 'error')
     end

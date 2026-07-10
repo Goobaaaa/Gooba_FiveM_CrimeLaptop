@@ -58,7 +58,7 @@ const App = {
                 break;
 
             case 'setDropoff':
-                this.showNotification('Go to ' + data.location.name + ' (Collection Point) to complete your transaction', 'info');
+                this.showNotification('Go to ' + data.location.name + ' (Collection Point) to collect your item', 'info');
                 break;
 
             case 'myListingsData':
