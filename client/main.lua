@@ -177,10 +177,13 @@ CreateThread(function()
             local playerCoords = GetEntityCoords(PlayerPedId())
 
             if activeDropoff then
-                local dist = #(playerCoords - activeDropoff.coords)
-                if dist < 10.0 then
+                local dx = playerCoords.x - activeDropoff.coords.x
+                local dy = playerCoords.y - activeDropoff.coords.y
+                local dist2d = math.sqrt(dx * dx + dy * dy)
+
+                if dist2d < 6.0 then
                     Wait(0)
-                    if dist < Config.SecureDropbox.InteractionDistance then
+                    if dist2d < 4.0 then
                         if IsControlJustReleased(0, 38) then
                             local ped = PlayerPedId()
                             PlayDropoffAnimation(ped, function()
