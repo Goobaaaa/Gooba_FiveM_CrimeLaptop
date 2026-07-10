@@ -104,7 +104,7 @@ local function SetDropoffBlip(location)
                 activeDropoff.coords.x, activeDropoff.coords.y, activeDropoff.coords.z - 0.95,
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
-                3.0, 3.0, 0.5,
+                2.0, 2.0, 0.3,
                 255, 100, 100, 100,
                 false, false, 2, false, nil, nil, false
             )
@@ -198,13 +198,13 @@ CreateThread(function()
 
                 if dist2d < 2.0 then
                     Wait(0)
-                    if dist2d < 1.5 then
-                        if IsControlJustReleased(0, 38) then
-                            local ped = PlayerPedId()
-                            PlayDropoffAnimation(ped, function()
-                                TriggerServerEvent('crime_laptop:server:depositAtDropoff')
-                            end)
-                        end
+                    DrawText3D(activeDropoff.coords.x, activeDropoff.coords.y, activeDropoff.coords.z + 0.5, '~r~[E]~w~ Drop off item (' .. string.format('%.1f', dist2d) .. 'm)')
+                    if IsControlJustReleased(0, 38) or IsControlJustPressed(0, 38) then
+                        print('[Crime Laptop] E pressed at distance: ' .. dist2d)
+                        local ped = PlayerPedId()
+                        PlayDropoffAnimation(ped, function()
+                            TriggerServerEvent('crime_laptop:server:depositAtDropoff')
+                        end)
                     end
                 end
             end
