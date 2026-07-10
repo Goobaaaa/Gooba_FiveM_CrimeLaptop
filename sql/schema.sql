@@ -33,3 +33,14 @@ CREATE TABLE IF NOT EXISTS `crime_laptop_crypto_history` (
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX `idx_license` (`license`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `crime_laptop_purchases` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `buyer_license` VARCHAR(60) NOT NULL,
+    `listing_id` INT NOT NULL,
+    `pickup_name` VARCHAR(100) NOT NULL,
+    `status` ENUM('pending', 'completed', 'cancelled') DEFAULT 'pending',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_buyer` (`buyer_license`),
+    INDEX `idx_listing` (`listing_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

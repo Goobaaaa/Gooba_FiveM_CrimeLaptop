@@ -50,6 +50,19 @@ CreateThread(function()
         ADD COLUMN IF NOT EXISTS `status` ENUM('pending', 'active', 'sold', 'cancelled') DEFAULT 'pending'
     ]])
 
+    exports.oxmysql:execute([[
+        CREATE TABLE IF NOT EXISTS `crime_laptop_purchases` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `buyer_license` VARCHAR(60) NOT NULL,
+            `listing_id` INT NOT NULL,
+            `pickup_name` VARCHAR(100) NOT NULL,
+            `status` ENUM('pending', 'completed', 'cancelled') DEFAULT 'pending',
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_buyer` (`buyer_license`),
+            INDEX `idx_listing` (`listing_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ]])
+
     DebugPrint('Database tables ready')
 end)
 
@@ -355,6 +368,80 @@ RegisterNetEvent('crime_laptop:server:depositAtDropoff', function()
         end
     end
 
+    local p = promise.new()
+    exports.oxmysql:execute(
+        'SELECT * FROM crime_laptop_purchases WHERE buyer_license = ? AND status = ?',
+        { license, 'pending' },
+        function(result)
+            p:resolve(result)
+        end
+    )
+    local purchases = Citizen.Await(p)
+
+    if purchases and purchases[1] then
+        local purchase = purchases[1]
+        local listing = BlackMarket.GetListing(purchase.listing_id)
+
+        if not listing then
+            NotifyClient(source, 'Listing no longer available', 'error')
+            exports.oxmysql:execute('DELETE FROM crime_laptop_purchases WHERE id = ?', { purchase.id })
+            TriggerClientEvent('crime_laptop:client:clearDropoff', source)
+            return
+        end
+
+        if buyerProfile.crypto < listing.price then
+            NotifyClient(source, 'Insufficient CRM. You need ' .. listing.price .. ' CRM', 'error')
+            exports.oxmysql:execute('DELETE FROM crime_laptop_purchases WHERE id = ?', { purchase.id })
+            TriggerClientEvent('crime_laptop:client:clearDropoff', source)
+            return
+        end
+
+        local success, err = Profiles.RemoveCrypto(license, listing.price, 'Black Market purchase: ' .. listing.item_label)
+        if not success then
+            NotifyClient(source, err or 'Insufficient CRM', 'error')
+            exports.oxmysql:execute('DELETE FROM crime_laptop_purchases WHERE id = ?', { purchase.id })
+            TriggerClientEvent('crime_laptop:client:clearDropoff', source)
+            return
+        end
+
+        Profiles.AddCrypto(listing.seller_license, listing.price, 'Black Market sale: ' .. listing.item_label)
+        Profiles.IncrementStat(listing.seller_license, 'items_sold', listing.amount)
+        Profiles.IncrementStat(listing.seller_license, 'total_earned', listing.price)
+
+        BlackMarket.DeleteListing(listing.id)
+
+        local given = FrameworkGiveItem(source, listing.item_name, listing.amount)
+        if not given then
+            Profiles.AddCrypto(license, listing.price, 'Refund: purchase failed')
+            NotifyClient(source, 'Failed to give item', 'error')
+            exports.oxmysql:execute('DELETE FROM crime_laptop_purchases WHERE id = ?', { purchase.id })
+            TriggerClientEvent('crime_laptop:client:clearDropoff', source)
+            return
+        end
+
+        exports.oxmysql:execute('UPDATE crime_laptop_purchases SET status = ? WHERE id = ?', { 'completed', purchase.id })
+
+        NotifyClient(source, 'Collected ' .. listing.amount .. 'x ' .. listing.item_label .. '!', 'success')
+        TriggerClientEvent('crime_laptop:client:clearDropoff', source)
+
+        local sellerSource = nil
+        for _, playerId in ipairs(GetPlayers()) do
+            local playerLicense = GetPlayerLicense(tonumber(playerId))
+            if playerLicense == listing.seller_license then
+                sellerSource = tonumber(playerId)
+                break
+            end
+        end
+
+        if sellerSource then
+            NotifyClient(sellerSource, 'Your listing sold: ' .. listing.amount .. 'x ' .. listing.item_label .. ' for ' .. listing.price .. ' CRM', 'success')
+        end
+
+        local myListings = BlackMarket.GetPlayerListings(license)
+        TriggerClientEvent('crime_laptop:client:myListingsData', source, myListings)
+        return
+    end
+
     NotifyClient(source, 'Nothing to collect or deposit', 'error')
 end)
 
@@ -418,6 +505,11 @@ RegisterNetEvent('crime_laptop:server:buyListing', function(listingId)
         return
     end
 
+    if listing.status ~= 'active' then
+        NotifyClient(source, 'This listing is no longer available', 'error')
+        return
+    end
+
     if listing.seller_license == license then
         NotifyClient(source, 'You cannot buy your own listing', 'error')
         return
@@ -430,43 +522,25 @@ RegisterNetEvent('crime_laptop:server:buyListing', function(listingId)
     end
 
     if buyerProfile.crypto < listing.price then
-        NotifyClient(source, 'Insufficient CRM', 'error')
+        NotifyClient(source, 'Insufficient CRM. You need ' .. listing.price .. ' CRM', 'error')
         return
     end
 
-    local success, err = Profiles.RemoveCrypto(license, listing.price, 'Black Market purchase: ' .. listing.item_label)
-    if not success then
-        NotifyClient(source, err or 'Insufficient CRM', 'error')
-        return
-    end
+    local pickupIndex = math.random(#Config.DropoffLocations)
+    local pickup = Config.DropoffLocations[pickupIndex]
 
-    Profiles.AddCrypto(listing.seller_license, listing.price, 'Black Market sale: ' .. listing.item_label)
-    Profiles.IncrementStat(listing.seller_license, 'items_sold', listing.amount)
-    Profiles.IncrementStat(listing.seller_license, 'total_earned', listing.price)
-
-    BlackMarket.DeleteListing(listingId)
-
-    local given = FrameworkGiveItem(source, listing.item_name, listing.amount)
-    if not given then
-        Profiles.AddCrypto(license, listing.price, 'Refund: purchase failed')
-        NotifyClient(source, 'Failed to give item', 'error')
-        return
-    end
-
-    NotifyClient(source, 'Purchased ' .. listing.amount .. 'x ' .. listing.item_label, 'success')
-
-    local sellerSource = nil
-    for _, playerId in ipairs(GetPlayers()) do
-        local playerLicense = GetPlayerLicense(tonumber(playerId))
-        if playerLicense == listing.seller_license then
-            sellerSource = tonumber(playerId)
-            break
+    local p = promise.new()
+    exports.oxmysql:insert(
+        'INSERT INTO crime_laptop_purchases (buyer_license, listing_id, pickup_name, status) VALUES (?, ?, ?, ?)',
+        { license, listingId, pickup.name, 'pending' },
+        function(result)
+            p:resolve(result)
         end
-    end
+    )
+    Citizen.Await(p)
 
-    if sellerSource then
-        NotifyClient(sellerSource, 'Your listing sold: ' .. listing.amount .. 'x ' .. listing.item_label .. ' for ' .. listing.price .. ' CRM', 'success')
-    end
+    TriggerClientEvent('crime_laptop:client:setDropoff', source, pickup)
+    NotifyClient(source, 'Purchase initiated! Go to ' .. pickup.name .. ' to collect your item.', 'success')
 end)
 
 RegisterNetEvent('crime_laptop:server:transferCrypto', function(toUsername, amount)
