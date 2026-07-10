@@ -185,49 +185,45 @@ CreateThread(function()
     CreateDropboxBlips()
 
     while true do
-        Wait(500)
-        if isDepositing then
-            Wait(500)
-        else
+        Wait(0)
+
+        if activeDropoff and not isDepositing then
             local playerCoords = GetEntityCoords(PlayerPedId())
+            local dx = playerCoords.x - activeDropoff.coords.x
+            local dy = playerCoords.y - activeDropoff.coords.y
+            local dist2d = math.sqrt(dx * dx + dy * dy)
 
-            if activeDropoff then
-                local dx = playerCoords.x - activeDropoff.coords.x
-                local dy = playerCoords.y - activeDropoff.coords.y
-                local dist2d = math.sqrt(dx * dx + dy * dy)
+            if dist2d < 2.0 then
+                DrawMarker(
+                    1,
+                    activeDropoff.coords.x, activeDropoff.coords.y, activeDropoff.coords.z - 0.98,
+                    0.0, 0.0, 0.0,
+                    0.0, 0.0, 0.0,
+                    2.0, 2.0, 0.2,
+                    0, 255, 0, 150,
+                    false, false, 2, false, nil, nil, false
+                )
 
-                if dist2d < 2.0 then
-                    Wait(0)
-                    DrawText3D(activeDropoff.coords.x, activeDropoff.coords.y, activeDropoff.coords.z + 0.5, '~r~[E]~w~ Drop off item (' .. string.format('%.1f', dist2d) .. 'm)')
-                    if IsControlJustReleased(0, 38) or IsControlJustPressed(0, 38) then
-                        print('[Crime Laptop] E pressed at distance: ' .. dist2d)
-                        local ped = PlayerPedId()
-                        PlayDropoffAnimation(ped, function()
-                            TriggerServerEvent('crime_laptop:server:depositAtDropoff')
-                        end)
-                    end
+                if IsControlJustPressed(0, 38) then
+                    local ped = PlayerPedId()
+                    PlayDropoffAnimation(ped, function()
+                        TriggerServerEvent('crime_laptop:server:depositAtDropoff')
+                    end)
+                    Wait(1000)
                 end
+            else
+                DrawMarker(
+                    1,
+                    activeDropoff.coords.x, activeDropoff.coords.y, activeDropoff.coords.z - 0.98,
+                    0.0, 0.0, 0.0,
+                    0.0, 0.0, 0.0,
+                    2.0, 2.0, 0.2,
+                    255, 100, 100, 100,
+                    false, false, 2, false, nil, nil, false
+                )
             end
-
-            local nearAny = false
-            for _, loc in ipairs(Config.SecureDropbox.Locations) do
-                local dist = #(playerCoords - loc.coords)
-                if dist < 20.0 then
-                    nearAny = true
-                    break
-                end
-            end
-
-            if nearAny then
-                Wait(0)
-                local loc, dist = GetNearestDropbox()
-                if loc and dist < Config.SecureDropbox.InteractionDistance then
-                    DrawText3D(loc.coords.x, loc.coords.y, loc.coords.z + 1.0, '~r~[E]~w~ Use Secure Dropbox')
-                    if IsControlJustReleased(0, 38) then
-                        OpenDropboxUI()
-                    end
-                end
-            end
+        else
+            Wait(500)
         end
     end
 end)
