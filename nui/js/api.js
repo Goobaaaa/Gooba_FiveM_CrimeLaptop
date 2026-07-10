@@ -74,5 +74,9 @@ const API = {
 
     async closeDropbox() {
         return await this.fetch('closeDropbox');
+    },
+
+    async clearDropoff() {
+        return await this.fetch('clearDropoff');
     }
 };

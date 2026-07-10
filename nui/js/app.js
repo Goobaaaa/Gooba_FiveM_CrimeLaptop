@@ -373,7 +373,17 @@ const App = {
             document.getElementById('listing-amount').value = '1';
             document.getElementById('listing-price').value = '';
             select.innerHTML = '<option value="">Select an item...</option>';
-            this.showNotification('Listing created. Visit a Secure Dropbox to deposit.', 'success');
+            this.showNotification('Listing created. Go to the drop-off location.', 'success');
+
+            document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-market-tab="mylistings"]').classList.add('active');
+            document.querySelectorAll('.market-tab-content').forEach(c => {
+                c.classList.remove('active');
+                c.classList.add('hidden');
+            });
+            document.getElementById('market-tab-mylistings').classList.remove('hidden');
+            document.getElementById('market-tab-mylistings').classList.add('active');
+            this.loadMyListings();
         } else {
             this.showNotification(result?.message || 'Failed to create listing', 'error');
         }
@@ -407,6 +417,7 @@ const App = {
         if (result && result.success) {
             this.showNotification('Listing cancelled', 'success');
             this.loadMyListings();
+            API.clearDropoff();
         } else {
             this.showNotification(result?.message || 'Failed to cancel listing', 'error');
         }

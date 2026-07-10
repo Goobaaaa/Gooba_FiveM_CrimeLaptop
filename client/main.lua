@@ -79,9 +79,9 @@ local function SetDropoffBlip(location)
     SetNewWaypoint(location.coords.x, location.coords.y)
 
     local blip = AddBlipForCoord(location.coords.x, location.coords.y, location.coords.z)
-    SetBlipSprite(blip, 1)
+    SetBlipSprite(blip, 408)
     SetBlipDisplay(blip, 4)
-    SetBlipScale(blip, 1.2)
+    SetBlipScale(blip, 1.0)
     SetBlipColour(blip, 5)
     SetBlipFlashes(blip, true)
     BeginTextCommandSetBlipName('STRING')
@@ -181,7 +181,6 @@ CreateThread(function()
                 if dist < 10.0 then
                     Wait(0)
                     if dist < Config.SecureDropbox.InteractionDistance then
-                        DrawText3D(activeDropoff.coords.x, activeDropoff.coords.y, activeDropoff.coords.z + 1.0, '~r~[E]~w~ Deposit Listing')
                         if IsControlJustReleased(0, 38) then
                             local ped = PlayerPedId()
                             PlayDropoffAnimation(ped, function()
@@ -362,6 +361,11 @@ end)
 
 RegisterNUICallback('closeDropbox', function(data, cb)
     SetNuiFocus(false, false)
+    cb({ ok = true })
+end)
+
+RegisterNUICallback('clearDropoff', function(data, cb)
+    ClearDropoffBlip()
     cb({ ok = true })
 end)
 
