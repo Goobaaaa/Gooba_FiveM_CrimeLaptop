@@ -637,3 +637,56 @@ RegisterCommand('resetprofile', function(source, args, rawCommand)
 
     print('[Crime Laptop] Profile reset complete for player ' .. targetId)
 end, false)
+
+RegisterCommand('givecrm', function(source, args, rawCommand)
+    local targetId = tonumber(args[1])
+    local amount = tonumber(args[2])
+
+    if not targetId or not amount then
+        if source == 0 then
+            print('[Crime Laptop] Usage: givecrm <playerServerId> <amount>')
+        else
+            NotifyClient(source, 'Usage: /givecrm <playerId> <amount>', 'error')
+        end
+        return
+    end
+
+    if amount <= 0 then
+        if source == 0 then
+            print('[Crime Laptop] Amount must be greater than 0')
+        else
+            NotifyClient(source, 'Amount must be greater than 0', 'error')
+        end
+        return
+    end
+
+    local license = GetPlayerLicense(targetId)
+    if not license then
+        if source == 0 then
+            print('[Crime Laptop] No license found for player ' .. targetId .. ' (player may be offline)')
+        else
+            NotifyClient(source, 'Player not found or offline', 'error')
+        end
+        return
+    end
+
+    local profile = Profiles.GetByLicense(license)
+    if not profile then
+        if source == 0 then
+            print('[Crime Laptop] No profile found for player ' .. targetId)
+        else
+            NotifyClient(source, 'Player has no crime laptop profile', 'error')
+        end
+        return
+    end
+
+    Profiles.AddCrypto(license, amount, 'Admin grant')
+
+    if source == 0 then
+        print('[Crime Laptop] Gave ' .. amount .. ' CRM to player ' .. targetId .. ' (' .. profile.username .. ')')
+    else
+        NotifyClient(source, 'Gave ' .. amount .. ' CRM to ' .. profile.username, 'success')
+    end
+
+    TriggerClientEvent('crime_laptop:client:profileData', targetId, Profiles.GetByLicense(license))
+end, false)
