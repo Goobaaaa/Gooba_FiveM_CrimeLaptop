@@ -272,20 +272,13 @@ RegisterNetEvent('crime_laptop:server:createListing', function(data)
         return
     end
 
-    local removed = FrameworkRemoveItem(source, itemName, amount)
-    if not removed then
-        NotifyClient(source, 'Failed to remove item from inventory', 'error')
-        return
-    end
-
     local success, err = BlackMarket.CreatePendingListing(license, profile.username, itemName, itemLabel, amount, price)
     if success then
         local dropoffIndex = math.random(#Config.DropoffLocations)
         local dropoff = Config.DropoffLocations[dropoffIndex]
         TriggerClientEvent('crime_laptop:client:setDropoff', source, dropoff)
-        NotifyClient(source, 'Listing created! Go to ' .. dropoff.name .. ' to deposit the item.', 'success')
+        NotifyClient(source, 'Listing created! Go to ' .. dropoff.name .. ' to drop off the item.', 'success')
     else
-        FrameworkGiveItem(source, itemName, amount)
         NotifyClient(source, err or 'Failed to create listing', 'error')
     end
 end)
@@ -325,6 +318,18 @@ RegisterNetEvent('crime_laptop:server:depositAtDropoff', function()
 
     for _, listing in ipairs(pendingListings) do
         if listing.status == 'pending' then
+            local hasItem = FrameworkHasItem(source, listing.item_name)
+            if not hasItem then
+                NotifyClient(source, 'You don\'t have the required item: ' .. listing.item_label, 'error')
+                return
+            end
+
+            local removed = FrameworkRemoveItem(source, listing.item_name, listing.amount)
+            if not removed then
+                NotifyClient(source, 'Failed to remove item from inventory', 'error')
+                return
+            end
+
             BlackMarket.ActivateListing(listing.id)
             deposited = true
             break
