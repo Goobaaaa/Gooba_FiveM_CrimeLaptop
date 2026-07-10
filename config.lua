@@ -36,7 +36,7 @@ Config.SecureDropbox = {
     BlipSprite = 134,
     BlipColor = 1,
     BlipScale = 0.8,
-    InteractionDistance = 4.0,
+    InteractionDistance = 1.5,
     Locations = {
         {
             name = 'Downtown Newspaper Box',

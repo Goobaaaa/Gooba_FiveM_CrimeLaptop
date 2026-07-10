@@ -181,9 +181,9 @@ CreateThread(function()
                 local dy = playerCoords.y - activeDropoff.coords.y
                 local dist2d = math.sqrt(dx * dx + dy * dy)
 
-                if dist2d < 6.0 then
+                if dist2d < 2.0 then
                     Wait(0)
-                    if dist2d < 4.0 then
+                    if dist2d < 1.5 then
                         if IsControlJustReleased(0, 38) then
                             local ped = PlayerPedId()
                             PlayDropoffAnimation(ped, function()
