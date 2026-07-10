@@ -290,7 +290,7 @@ RegisterNetEvent('crime_laptop:server:createListing', function(data)
         local dropoffIndex = math.random(#Config.DropoffLocations)
         local dropoff = Config.DropoffLocations[dropoffIndex]
         TriggerClientEvent('crime_laptop:client:setDropoff', source, dropoff)
-        NotifyClient(source, 'Listing created! Go to ' .. dropoff.name .. ' to drop off the item.', 'success')
+        NotifyClient(source, 'Listing created! Go to ' .. dropoff.name .. ' to drop off your item.', 'success')
     else
         NotifyClient(source, err or 'Failed to create listing', 'error')
     end
@@ -481,13 +481,11 @@ RegisterNetEvent('crime_laptop:server:cancelListing', function(data)
 
     if listing.status == 'pending' then
         TriggerClientEvent('crime_laptop:client:clearDropoff', source)
-        NotifyClient(source, 'Listing cancelled. Drop-off removed.', 'success')
+        NotifyClient(source, 'Listing cancelled.', 'success')
     elseif listing.status == 'active' then
         local dropoffIndex = math.random(#Config.DropoffLocations)
         local dropoff = Config.DropoffLocations[dropoffIndex]
         TriggerClientEvent('crime_laptop:client:setDropoff', source, dropoff)
-        local profile = GetProfile(source)
-        BlackMarket.CreateCancelledListing(license, profile and profile.username or 'Unknown', listing.item_name, listing.item_label, listing.amount, listing.price)
         NotifyClient(source, 'Listing cancelled. Go to ' .. dropoff.name .. ' to collect your item.', 'success')
     end
 

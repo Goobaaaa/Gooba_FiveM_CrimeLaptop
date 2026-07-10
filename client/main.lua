@@ -80,7 +80,7 @@ local function SetDropoffBlip(location)
     SetBlipColour(blip, 5)
     SetBlipFlashes(blip, true)
     BeginTextCommandSetBlipName('STRING')
-    AddTextComponentString('Drop-off: ' .. location.name)
+    AddTextComponentString('Collection Point - ' .. location.name)
     EndTextCommandSetBlipName(blip)
 
     dropoffBlip = blip

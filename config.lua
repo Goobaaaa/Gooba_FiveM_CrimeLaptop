@@ -27,7 +27,8 @@ Config.DropoffLocations = {
     {
         name = 'Vinewood Tattoo Parlor',
         coords = vector3(309.69, 170.70, 103.92),
-        heading = 159.4
+        heading = 159.4,
+        label = 'Collection Point'
     }
 }
 

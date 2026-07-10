@@ -58,7 +58,7 @@ const App = {
                 break;
 
             case 'setDropoff':
-                this.showNotification('Go to ' + data.location.name + ' to deposit your item', 'info');
+                this.showNotification('Go to ' + data.location.name + ' (Collection Point) to complete your transaction', 'info');
                 break;
 
             case 'myListingsData':
@@ -392,7 +392,7 @@ const App = {
         document.getElementById('listing-amount').value = '1';
         document.getElementById('listing-price').value = '';
         select.innerHTML = '<option value="">Select an item...</option>';
-        this.showNotification('Listing created. Go to the drop-off location.', 'success');
+            this.showNotification('Listing created. Go to the Collection Point.', 'success');
 
         document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
         document.querySelector('[data-market-tab="mylistings"]').classList.add('active');
