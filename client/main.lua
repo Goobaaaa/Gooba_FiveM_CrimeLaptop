@@ -1,6 +1,7 @@
 local isLaptopOpen = false
 local dropboxBlips = {}
 local dropoffBlip = nil
+local dropoffRadiusBlip = nil
 local pendingListings = {}
 local activeDropoff = nil
 local isDepositing = false
@@ -64,12 +65,18 @@ local function ClearDropoffBlip()
     if dropoffBlip and DoesBlipExist(dropoffBlip) then
         RemoveBlip(dropoffBlip)
     end
+    if dropoffRadiusBlip and DoesBlipExist(dropoffRadiusBlip) then
+        RemoveBlip(dropoffRadiusBlip)
+    end
     dropoffBlip = nil
+    dropoffRadiusBlip = nil
     activeDropoff = nil
 end
 
 local function SetDropoffBlip(location)
     ClearDropoffBlip()
+
+    SetNewWaypoint(location.coords.x, location.coords.y)
 
     local blip = AddBlipForCoord(location.coords.x, location.coords.y, location.coords.z)
     SetBlipSprite(blip, 1)
@@ -81,7 +88,12 @@ local function SetDropoffBlip(location)
     AddTextComponentString('Drop-off: ' .. location.name)
     EndTextCommandSetBlipName(blip)
 
+    local radiusBlip = AddBlipForRadius(location.coords.x, location.coords.y, location.coords.z, 50.0)
+    SetBlipColour(radiusBlip, 5)
+    SetBlipAlpha(radiusBlip, 80)
+
     dropoffBlip = blip
+    dropoffRadiusBlip = radiusBlip
     activeDropoff = location
 end
 
