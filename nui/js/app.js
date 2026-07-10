@@ -184,6 +184,10 @@ const App = {
         document.getElementById('btn-refresh-mylistings').addEventListener('click', () => {
             this.loadMyListings();
         });
+
+        document.getElementById('toggle-active-only').addEventListener('change', () => {
+            this.loadMyListings();
+        });
     },
 
     async register() {
@@ -270,16 +274,23 @@ const App = {
 
     renderMyListings(listings) {
         const container = document.getElementById('mylistings-list');
-        if (!listings || listings.length === 0) {
+        const activeOnly = document.getElementById('toggle-active-only')?.checked || false;
+
+        let filtered = listings || [];
+        if (activeOnly) {
+            filtered = filtered.filter(l => l.status === 'active');
+        }
+
+        if (filtered.length === 0) {
             container.innerHTML = `
                 <div class="market-empty">
                     <i class="fas fa-inbox"></i>
-                    <p>No listings yet</p>
+                    <p>${activeOnly ? 'No active listings' : 'No listings yet'}</p>
                 </div>`;
             return;
         }
 
-        container.innerHTML = listings.map(listing => {
+        container.innerHTML = filtered.map(listing => {
             let actionHtml = '';
             if (listing.status === 'active') {
                 actionHtml = `<button class="btn-cancel" onclick="App.cancelListing(${listing.id})"><i class="fas fa-times"></i> Cancel</button>`;

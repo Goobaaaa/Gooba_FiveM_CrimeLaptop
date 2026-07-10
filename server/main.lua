@@ -313,10 +313,12 @@ RegisterNetEvent('crime_laptop:server:depositAtDropoff', function()
     local license = GetPlayerLicense(source)
     if not license then return end
 
-    local pendingListings = BlackMarket.GetPlayerListings(license)
-    local deposited = false
+    local profile = GetProfile(source)
+    if not profile then return end
 
-    for _, listing in ipairs(pendingListings) do
+    local allListings = BlackMarket.GetPlayerListings(license)
+
+    for _, listing in ipairs(allListings) do
         if listing.status == 'pending' then
             local hasItem = FrameworkHasItem(source, listing.item_name)
             if not hasItem then
@@ -331,20 +333,29 @@ RegisterNetEvent('crime_laptop:server:depositAtDropoff', function()
             end
 
             BlackMarket.ActivateListing(listing.id)
-            deposited = true
-            break
+            NotifyClient(source, 'Item deposited! Listing is now active on the Black Market.', 'success')
+            TriggerClientEvent('crime_laptop:client:clearDropoff', source)
+
+            local myListings = BlackMarket.GetPlayerListings(license)
+            TriggerClientEvent('crime_laptop:client:myListingsData', source, myListings)
+            return
         end
     end
 
-    if deposited then
-        NotifyClient(source, 'Item deposited! Listing is now active on the Black Market.', 'success')
-        TriggerClientEvent('crime_laptop:client:clearDropoff', source)
-    else
-        NotifyClient(source, 'No pending listings to deposit', 'error')
+    for _, listing in ipairs(allListings) do
+        if listing.status == 'cancelled' then
+            FrameworkGiveItem(source, listing.item_name, listing.amount)
+            BlackMarket.DeleteListing(listing.id)
+            NotifyClient(source, 'Collected ' .. listing.amount .. 'x ' .. listing.item_label, 'success')
+            TriggerClientEvent('crime_laptop:client:clearDropoff', source)
+
+            local myListings = BlackMarket.GetPlayerListings(license)
+            TriggerClientEvent('crime_laptop:client:myListingsData', source, myListings)
+            return
+        end
     end
 
-    local myListings = BlackMarket.GetPlayerListings(license)
-    TriggerClientEvent('crime_laptop:client:myListingsData', source, myListings)
+    NotifyClient(source, 'Nothing to collect or deposit', 'error')
 end)
 
 RegisterNetEvent('crime_laptop:server:getMyListings', function()
@@ -385,8 +396,11 @@ RegisterNetEvent('crime_laptop:server:cancelListing', function(data)
         TriggerClientEvent('crime_laptop:client:clearDropoff', source)
         NotifyClient(source, 'Listing cancelled. Drop-off removed.', 'success')
     elseif listing.status == 'active' then
-        FrameworkGiveItem(source, listing.item_name, listing.amount)
-        NotifyClient(source, 'Listing cancelled. Item returned to inventory.', 'success')
+        local dropoffIndex = math.random(#Config.DropoffLocations)
+        local dropoff = Config.DropoffLocations[dropoffIndex]
+        TriggerClientEvent('crime_laptop:client:setDropoff', source, dropoff)
+        BlackMarket.CreateCancelledListing(license, profile.username, listing.item_name, listing.item_label, listing.amount, listing.price)
+        NotifyClient(source, 'Listing cancelled. Go to ' .. dropoff.name .. ' to collect your item.', 'success')
     end
 
     local myListings = BlackMarket.GetPlayerListings(license)

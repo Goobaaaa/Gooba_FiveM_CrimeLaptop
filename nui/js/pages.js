@@ -151,7 +151,7 @@ const Pages = {
         container.innerHTML = listings.map(listing => `
             <div class="market-row" data-id="${listing.id}">
                 <span class="seller-name">${escapeHtml(listing.seller_username)}</span>
-                <span>${escapeHtml(listing.item_label)} (${escapeHtml(listing.item_name)})</span>
+                <span>${escapeHtml(listing.item_label)}</span>
                 <span>${listing.amount}</span>
                 <span class="item-price">${listing.price.toLocaleString()} CRM</span>
                 <span>

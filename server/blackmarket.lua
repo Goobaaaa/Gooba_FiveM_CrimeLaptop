@@ -85,6 +85,13 @@ function BlackMarket.CreatePendingListing(license, username, itemName, itemLabel
     return true, id
 end
 
+function BlackMarket.CreateCancelledListing(license, username, itemName, itemLabel, amount, price)
+    Insert(
+        'INSERT INTO ' .. Config.Database.listings .. ' (seller_license, seller_username, item_name, item_label, amount, price, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        { license, username, itemName, itemLabel, amount, price, 'cancelled' }
+    )
+end
+
 function BlackMarket.ActivateListing(listingId)
     print('[Crime Laptop] Activating listing: ' .. tostring(listingId))
     local result = Update(

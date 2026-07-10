@@ -1,7 +1,6 @@
 local isLaptopOpen = false
 local dropboxBlips = {}
 local dropoffBlip = nil
-local dropoffRadiusBlip = nil
 local pendingListings = {}
 local activeDropoff = nil
 local isDepositing = false
@@ -65,11 +64,7 @@ local function ClearDropoffBlip()
     if dropoffBlip and DoesBlipExist(dropoffBlip) then
         RemoveBlip(dropoffBlip)
     end
-    if dropoffRadiusBlip and DoesBlipExist(dropoffRadiusBlip) then
-        RemoveBlip(dropoffRadiusBlip)
-    end
     dropoffBlip = nil
-    dropoffRadiusBlip = nil
     activeDropoff = nil
 end
 
@@ -88,28 +83,8 @@ local function SetDropoffBlip(location)
     AddTextComponentString('Drop-off: ' .. location.name)
     EndTextCommandSetBlipName(blip)
 
-    local radiusBlip = AddBlipForRadius(location.coords.x, location.coords.y, location.coords.z, 50.0)
-    SetBlipColour(radiusBlip, 5)
-    SetBlipAlpha(radiusBlip, 80)
-
     dropoffBlip = blip
-    dropoffRadiusBlip = radiusBlip
     activeDropoff = location
-
-    CreateThread(function()
-        while activeDropoff do
-            Wait(0)
-            DrawMarker(
-                1,
-                activeDropoff.coords.x, activeDropoff.coords.y, activeDropoff.coords.z - 0.95,
-                0.0, 0.0, 0.0,
-                0.0, 0.0, 0.0,
-                2.0, 2.0, 0.3,
-                255, 100, 100, 100,
-                false, false, 2, false, nil, nil, false
-            )
-        end
-    end)
 end
 
 local function GetNearestDropbox()
@@ -194,16 +169,6 @@ CreateThread(function()
             local dist2d = math.sqrt(dx * dx + dy * dy)
 
             if dist2d < 2.0 then
-                DrawMarker(
-                    1,
-                    activeDropoff.coords.x, activeDropoff.coords.y, activeDropoff.coords.z - 0.98,
-                    0.0, 0.0, 0.0,
-                    0.0, 0.0, 0.0,
-                    2.0, 2.0, 0.2,
-                    0, 255, 0, 150,
-                    false, false, 2, false, nil, nil, false
-                )
-
                 if IsControlJustPressed(0, 38) then
                     local ped = PlayerPedId()
                     PlayDropoffAnimation(ped, function()
@@ -211,16 +176,6 @@ CreateThread(function()
                     end)
                     Wait(1000)
                 end
-            else
-                DrawMarker(
-                    1,
-                    activeDropoff.coords.x, activeDropoff.coords.y, activeDropoff.coords.z - 0.98,
-                    0.0, 0.0, 0.0,
-                    0.0, 0.0, 0.0,
-                    2.0, 2.0, 0.2,
-                    255, 100, 100, 100,
-                    false, false, 2, false, nil, nil, false
-                )
             end
         else
             Wait(500)
